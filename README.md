@@ -1,36 +1,143 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# CoachNest
 
-## Getting Started
+A sports coaching marketplace where coaches create profiles and clients discover and book them.
 
-First, run the development server:
+**Stack:** Next.js 14 (App Router) · TypeScript · Tailwind CSS · Supabase
+
+---
+
+## Getting Started (Co-dev Setup)
+
+### 1. Check Git is installed
+
+```bash
+git --version
+```
+
+### 2. Set up SSH key for GitHub (once, on your machine)
+
+```bash
+ssh-keygen -t ed25519 -C "your@email.com"
+```
+
+Hit enter through all prompts (no passphrase needed). Then:
+
+```bash
+cat ~/.ssh/id_ed25519.pub
+```
+
+Copy the output → go to GitHub → **Settings → SSH and GPG Keys → New SSH Key** → paste it in.
+
+### 3. Test it works
+
+```bash
+ssh -T git@github.com
+```
+
+Should say: `Hi username! You've successfully authenticated.`
+
+### 4. Clone the repo
+
+```bash
+git clone git@github.com:lusandamrasi/CoachNest.git
+cd CoachNest
+```
+
+### 5. Install dependencies
+
+```bash
+npm install
+```
+
+### 6. Create your `.env.local` file
+
+Create a file called `.env.local` in the project root and paste in exactly this:
+
+```
+NEXT_PUBLIC_SUPABASE_URL=https://dcnrueeyodwbxbzqppye.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRjbnJ1ZWV5b2R3YnhienFwcHllIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODExNzEwNjQsImV4cCI6MjA5Njc0NzA2NH0._OPEJXdCTbyR1DgbKAbwLMGLJY78lMzNOBo12D4iOUc
+SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRjbnJ1ZWV5b2R3YnhienFwcHllIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4MTE3MTA2NCwiZXhwIjoyMDk2NzQ3MDY0fQ.tHXRfslfoDX_HyFAGLsnECUOeDTL1ShDF441Dgp7r0U
+```
+
+### 7. Run the app
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 8. Daily workflow
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+git pull origin main        # always do this first before starting work
+# ... make changes ...
+git add .
+git commit -m "what you did"
+git push origin main
+```
 
-## Learn More
+---
 
-To learn more about Next.js, take a look at the following resources:
+> **Note for Node v24+ users:** Node v24 has a known issue where `node_modules/.bin` wrapper scripts break. The `npm run dev` script in this project already works around this — no extra steps needed.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+---
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Routes
 
-## Deploy on Vercel
+| URL | Description |
+|-----|-------------|
+| `/` | Landing page |
+| `/auth/login` | Sign in |
+| `/auth/signup` | Create account (choose Coach or Client role) |
+| `/auth/callback` | OAuth/magic-link callback handler |
+| `/coaches` | Coach listing (shell — search/filter coming soon) |
+| `/dashboard/coach` | Coach dashboard (protected) |
+| `/dashboard/client` | Client dashboard (protected) |
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Dashboard routes redirect to `/auth/login` when not authenticated.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+
+## Auth flow
+
+- **Sign up** — choose a role (Coach or Client). A `profiles` row is created automatically. Coaches also get a blank `coach_profiles` row.
+- **Sign in** — after login, coaches are redirected to `/dashboard/coach` and clients to `/dashboard/client`.
+- **Sign out** — click the Sign Out button in the dashboard header.
+
+---
+
+## Project structure
+
+```
+app/
+  auth/login         Sign-in page
+  auth/signup        Registration page
+  auth/callback      Auth redirect handler
+  dashboard/coach    Coach dashboard (protected)
+  dashboard/client   Client dashboard (protected)
+  coaches/           Coach listing shell
+  page.tsx           Landing page
+components/
+  auth/              LoginForm, SignupForm, AuthButton
+  landing/           Hero, HowItWorks, SportsCategories, FeaturedCoaches, CTABanner
+  layout/            Navbar, Footer
+  ui/                Button, Card, Input, Badge
+lib/
+  supabase/          client.ts (browser), server.ts (server components)
+  validations/       Zod schemas for auth forms
+  types/             TypeScript interfaces
+supabase/
+  migrations/        001_initial_schema.sql
+middleware.ts        Session refresh + route protection
+```
+
+---
+
+## Not yet built
+
+- Booking and payment flows
+- Coach profile edit page
+- Coach search and filter
+- Video upload UI
+- Review system
