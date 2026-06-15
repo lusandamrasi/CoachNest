@@ -1,0 +1,68 @@
+'use client'
+
+import Link from 'next/link'
+import Image from 'next/image'
+import { useRouter } from 'next/navigation'
+import { LogOut } from 'lucide-react'
+import { createClient } from '@/lib/supabase/client'
+import Button from '@/components/ui/Button'
+
+interface DashboardNavProps {
+  fullName: string | null
+  avatarUrl: string | null
+  profileHref: string
+}
+
+export default function DashboardNav({ fullName, avatarUrl, profileHref }: DashboardNavProps) {
+  const router = useRouter()
+
+  async function handleSignOut() {
+    const supabase = createClient()
+    await supabase.auth.signOut()
+    router.push('/')
+    router.refresh()
+  }
+
+  const initial = (fullName?.trim()?.[0] ?? '?').toUpperCase()
+
+  return (
+    <header className="border-b border-gray-200 bg-white">
+      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+        <Link href="/" className="flex items-center gap-2">
+          <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-600 text-white text-sm font-bold">
+            C
+          </span>
+          <span className="font-bold text-gray-900">CoachNest</span>
+        </Link>
+
+        <div className="flex items-center gap-3">
+          <Link
+            href={profileHref}
+            aria-label="View profile"
+            className="block h-10 w-10 overflow-hidden rounded-full ring-2 ring-transparent transition-all hover:ring-blue-200 focus-visible:outline-none focus-visible:ring-blue-400"
+          >
+            {avatarUrl ? (
+              <Image
+                src={avatarUrl}
+                alt={fullName ?? 'Profile'}
+                width={40}
+                height={40}
+                className="h-10 w-10 object-cover"
+                unoptimized
+              />
+            ) : (
+              <span className="flex h-10 w-10 items-center justify-center bg-blue-600 text-base font-semibold text-white">
+                {initial}
+              </span>
+            )}
+          </Link>
+
+          <Button variant="ghost" size="sm" onClick={handleSignOut} className="gap-1.5">
+            <LogOut className="h-4 w-4" />
+            Sign Out
+          </Button>
+        </div>
+      </div>
+    </header>
+  )
+}

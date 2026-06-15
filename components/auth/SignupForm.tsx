@@ -47,7 +47,10 @@ export default function SignupForm() {
       email: result.data.email,
       password: result.data.password,
       options: {
-        data: { full_name: result.data.full_name },
+        data: {
+          full_name: result.data.full_name,
+          role: result.data.role,
+        },
       },
     })
 
@@ -58,17 +61,6 @@ export default function SignupForm() {
     }
 
     if (data.user) {
-      await supabase
-        .from('profiles')
-        .update({ role: result.data.role, full_name: result.data.full_name })
-        .eq('id', data.user.id)
-
-      if (result.data.role === 'coach') {
-        await supabase
-          .from('coach_profiles')
-          .insert({ id: data.user.id, sport: '' })
-      }
-
       router.push(result.data.role === 'coach' ? '/dashboard/coach' : '/dashboard/client')
       router.refresh()
     }

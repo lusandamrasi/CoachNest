@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { Search, CalendarDays } from 'lucide-react'
-import AuthButton from '@/components/auth/AuthButton'
+import DashboardNav from '@/components/layout/DashboardNav'
 import Card from '@/components/ui/Card'
 import Link from 'next/link'
 
@@ -34,7 +34,7 @@ export default async function ClientDashboard() {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('full_name, role')
+    .select('full_name, role, avatar_url')
     .eq('id', user.id)
     .single()
 
@@ -42,16 +42,11 @@ export default async function ClientDashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Top bar */}
-      <header className="border-b border-gray-200 bg-white">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-          <Link href="/" className="flex items-center gap-2">
-            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-600 text-white text-sm font-bold">C</span>
-            <span className="font-bold text-gray-900">CoachNest</span>
-          </Link>
-          <AuthButton />
-        </div>
-      </header>
+      <DashboardNav
+        fullName={profile?.full_name ?? null}
+        avatarUrl={profile?.avatar_url ?? null}
+        profileHref="/dashboard/client"
+      />
 
       <main className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
         <div className="mb-10">
