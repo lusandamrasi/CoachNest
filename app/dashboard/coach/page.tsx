@@ -20,8 +20,8 @@ const PLACEHOLDER_CARDS = [
     icon: CalendarDays,
     title: 'Manage Availability',
     description: 'Set the days and times you are available for sessions.',
-    href: '#',
-    cta: 'Coming soon →',
+    href: '/dashboard/coach/manage-availability',
+    cta: 'Manage availability →',
     color: 'text-green-600 bg-green-50',
   },
   {
