@@ -24,14 +24,14 @@ export default function CTABanner() {
           <Link href="/coaches">
             <Button
               size="lg"
-              className="bg-white text-blue-600 hover:bg-blue-50 px-8"
+              className="border-white text-white hover:bg-white hover:text-blue-600 px-8"
             >
               Find a Coach
             </Button>
           </Link>
         </div>
         <p className="mt-6 text-sm text-blue-200">
-          500+ coaches already on the platform · No setup fees
+         Join now · No setup fees
         </p>
       </div>
     </section>

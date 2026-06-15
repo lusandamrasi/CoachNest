@@ -2,12 +2,24 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Menu, X } from 'lucide-react'
+import Image from 'next/image'
+import { useRouter } from 'next/navigation'
+import { Menu, X, LogOut } from 'lucide-react'
 import Button from '@/components/ui/Button'
+import { createClient } from '@/lib/supabase/client'
+
+type AuthUser = {
+  fullName: string | null
+  avatarUrl: string | null
+  dashboardHref: string
+}
 
 export default function Navbar() {
+  const router = useRouter()
   const [scrolled, setScrolled] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [authUser, setAuthUser] = useState<AuthUser | null>(null)
+  const [authReady, setAuthReady] = useState(false)
 
   useEffect(() => {
     const handler = () => setScrolled(window.scrollY > 10)
@@ -15,11 +27,66 @@ export default function Navbar() {
     return () => window.removeEventListener('scroll', handler)
   }, [])
 
+  useEffect(() => {
+    const supabase = createClient()
+    let active = true
+
+    async function loadProfile(userId: string) {
+      const { data } = await supabase
+        .from('profiles')
+        .select('full_name, role, avatar_url')
+        .eq('id', userId)
+        .single()
+
+      if (!active) return
+      setAuthUser({
+        fullName: data?.full_name ?? null,
+        avatarUrl: data?.avatar_url ?? null,
+        dashboardHref: data?.role === 'coach' ? '/dashboard/coach' : '/dashboard/client',
+      })
+      setAuthReady(true)
+    }
+
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (!active) return
+      if (user) {
+        loadProfile(user.id)
+      } else {
+        setAuthUser(null)
+        setAuthReady(true)
+      }
+    })
+
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        loadProfile(session.user.id)
+      } else {
+        setAuthUser(null)
+        setAuthReady(true)
+      }
+    })
+
+    return () => {
+      active = false
+      sub.subscription.unsubscribe()
+    }
+  }, [])
+
+  async function handleSignOut() {
+    const supabase = createClient()
+    await supabase.auth.signOut()
+    setMobileOpen(false)
+    router.push('/')
+    router.refresh()
+  }
+
   const navLinks = [
     { href: '/', label: 'Home' },
     { href: '/coaches', label: 'Find Coaches' },
     { href: '#about', label: 'About' },
   ]
+
+  const initial = (authUser?.fullName?.trim()?.[0] ?? '?').toUpperCase()
 
   return (
     <header
@@ -51,12 +118,43 @@ export default function Navbar() {
 
         {/* Desktop CTA */}
         <div className="hidden md:flex items-center gap-3">
-          <Link href="/auth/login">
-            <Button variant="ghost" size="sm">Sign In</Button>
-          </Link>
-          <Link href="/auth/signup">
-            <Button size="sm">Get Started</Button>
-          </Link>
+          {!authReady ? null : authUser ? (
+            <>
+              <Link
+                href={authUser.dashboardHref}
+                aria-label="Go to dashboard"
+                className="block h-10 w-10 overflow-hidden rounded-full ring-2 ring-transparent transition-all hover:ring-blue-200 focus-visible:outline-none focus-visible:ring-blue-400"
+              >
+                {authUser.avatarUrl ? (
+                  <Image
+                    src={authUser.avatarUrl}
+                    alt={authUser.fullName ?? 'Profile'}
+                    width={40}
+                    height={40}
+                    className="h-10 w-10 object-cover"
+                    unoptimized
+                  />
+                ) : (
+                  <span className="flex h-10 w-10 items-center justify-center bg-blue-600 text-base font-semibold text-white">
+                    {initial}
+                  </span>
+                )}
+              </Link>
+              <Button variant="ghost" size="sm" onClick={handleSignOut} className="gap-1.5">
+                <LogOut className="h-4 w-4" />
+                Sign Out
+              </Button>
+            </>
+          ) : (
+            <>
+              <Link href="/auth/login">
+                <Button variant="ghost" size="sm">Sign In</Button>
+              </Link>
+              <Link href="/auth/signup">
+                <Button size="sm">Get Started</Button>
+              </Link>
+            </>
+          )}
         </div>
 
         {/* Mobile hamburger */}
@@ -84,12 +182,30 @@ export default function Navbar() {
               </Link>
             ))}
             <hr className="border-gray-200" />
-            <Link href="/auth/login" onClick={() => setMobileOpen(false)}>
-              <Button variant="outline" size="sm" className="w-full">Sign In</Button>
-            </Link>
-            <Link href="/auth/signup" onClick={() => setMobileOpen(false)}>
-              <Button size="sm" className="w-full">Get Started</Button>
-            </Link>
+            {!authReady ? null : authUser ? (
+              <>
+                <Link
+                  href={authUser.dashboardHref}
+                  onClick={() => setMobileOpen(false)}
+                  className="text-sm font-medium text-gray-700 hover:text-blue-600"
+                >
+                  My Dashboard
+                </Link>
+                <Button variant="outline" size="sm" className="w-full gap-1.5" onClick={handleSignOut}>
+                  <LogOut className="h-4 w-4" />
+                  Sign Out
+                </Button>
+              </>
+            ) : (
+              <>
+                <Link href="/auth/login" onClick={() => setMobileOpen(false)}>
+                  <Button variant="outline" size="sm" className="w-full">Sign In</Button>
+                </Link>
+                <Link href="/auth/signup" onClick={() => setMobileOpen(false)}>
+                  <Button size="sm" className="w-full">Get Started</Button>
+                </Link>
+              </>
+            )}
           </nav>
         </div>
       )}
