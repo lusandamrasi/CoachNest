@@ -20,8 +20,8 @@ const PLACEHOLDER_CARDS = [
     icon: CalendarDays,
     title: 'My Bookings',
     description: 'View your upcoming and past coaching sessions.',
-    href: '#',
-    cta: 'Coming soon →',
+    href: '/booking/my-booking',
+    cta: 'My bookings →',
     color: 'text-green-600 bg-green-50',
   },
 ]
