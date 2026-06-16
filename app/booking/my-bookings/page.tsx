@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Calendar, Clock, MapPin, ChevronRight, Check, X, AlertCircle } from 'lucide-react'
+import Navbar from '@/components/layout/Navbar'
+import Footer from '@/components/layout/Footer'
 
 type Booking = {
     id: string
@@ -77,6 +79,7 @@ function BookingCard({ booking, onPay }: { booking: Booking; onPay: (booking: Bo
     return (
         <div className={`bg-white rounded-2xl border shadow-sm overflow-hidden transition-all ${booking.status === 'cancelled' ? 'opacity-60 border-gray-100' : 'border-gray-100'
             }`}>
+            
             <div className={`h-1.5 w-full ${booking.status === 'confirmed'
                     ? 'bg-gradient-to-r from-green-400 to-green-500'
                     : booking.status === 'cancelled'
@@ -209,7 +212,9 @@ export default function MyBookingsPage() {
     const pendingCount = bookings.filter((b) => b.status === 'pending' && isUpcoming(b.date)).length
 
     return (
-        <div className="max-w-2xl mx-auto px-4 py-8 space-y-6">
+        <>
+        <Navbar />
+            <div className="max-w-2xl mx-auto px-4 py-8 space-y-6">
             {/* Header */}
             <div className="flex items-start justify-between">
                 <div>
@@ -270,5 +275,7 @@ export default function MyBookingsPage() {
                 </div>
             )}
         </div>
+        <Footer />
+        </>
     )
 }

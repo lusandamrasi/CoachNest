@@ -4,6 +4,7 @@ import { CalendarDays, ClipboardList, UserPen, AlertTriangle } from 'lucide-reac
 import DashboardNav from '@/components/layout/DashboardNav'
 import Card from '@/components/ui/Card'
 import Link from 'next/link'
+import BookingCalendar from '@/components/coach/BookingCalender'
 
 export const metadata = { title: 'Coach Dashboard — CoachNest' }
 
@@ -28,8 +29,8 @@ const PLACEHOLDER_CARDS = [
     icon: ClipboardList,
     title: 'View Bookings',
     description: 'See upcoming and past client bookings.',
-    href: '#',
-    cta: 'Coming soon →',
+    href: '/dashboard/coach/manage-booking',
+    cta: 'View bookings →',
     color: 'text-purple-600 bg-purple-50',
   },
 ]
@@ -53,6 +54,16 @@ export default async function CoachDashboard() {
     .eq('id', user.id)
     .single()
 
+  const { data: bookings } = await supabase
+    .from('bookings')
+    .select(`
+      id, date, start_time, end_time, status,
+      profiles!bookings_student_id_fkey ( full_name, avatar_url )
+    `)
+    .eq('coach_id', user.id)
+    .eq('status', 'confirmed')
+    .order('date', { ascending: true })
+
   const needsVideo = !coach?.intro_video_url
 
   return (
@@ -63,7 +74,7 @@ export default async function CoachDashboard() {
         profileHref="/dashboard/coach/profile"
       />
 
-      <main className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+      <main className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8 space-y-10">
         <div className="mb-6">
           <p className="text-sm font-medium text-blue-600">Coach Dashboard</p>
           <h1 className="mt-1 text-3xl font-bold text-gray-900">
@@ -114,6 +125,10 @@ export default async function CoachDashboard() {
             )
           })}
         </div>
+
+        {/* Booking Calendar */}
+        <BookingCalendar bookings={bookings ?? []} />
+
       </main>
     </div>
   )
