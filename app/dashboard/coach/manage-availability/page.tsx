@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import Button from '@/components/ui/Button'
+import Link from 'next/link'
+import { ChevronLeft } from 'lucide-react'
 
 const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
 
@@ -142,7 +144,7 @@ export default function AvailabilityPage() {
                 <h1 className="text-2xl font-bold text-gray-900">Set Your Availability</h1>
                 <p className="text-sm text-gray-500 mt-1">Add time slots for when you're available to coach.</p>
             </div>
-
+            
             {/* Add slot form */}
             <div className="rounded-xl border border-gray-200 bg-white p-5 space-y-4">
                 <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Add a Slot</h2>
@@ -266,10 +268,17 @@ export default function AvailabilityPage() {
             )}
 
             {error && <p className="text-sm text-red-500">{error}</p>}
-
+            
             <Button onClick={handleSave} loading={saving} className="w-full" size="lg">
                 Save & Continue
             </Button>
+            <Link
+                href="/dashboard/coach"
+                className="inline-flex items-center gap-1 text-sm text-gray-400 hover:text-gray-600 transition-colors"
+            >
+                <ChevronLeft className="w-4 h-4" />
+                Back to dashboard
+            </Link>
         </div>
     )
 }

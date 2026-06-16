@@ -4,8 +4,8 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Calendar, Clock, MapPin, Check, X, AlertCircle, User } from 'lucide-react'
-import Navbar from '@/components/layout/Navbar'
-import Footer from '@/components/layout/Footer'
+import Link from 'next/link'
+import { ChevronLeft } from 'lucide-react'
 
 type Booking = {
     id: string
@@ -143,6 +143,7 @@ function BookingCard({ booking }: { booking: Booking }) {
     return (
         <div className={`bg-white rounded-2xl border shadow-sm overflow-hidden ${booking.status === 'cancelled' ? 'opacity-60 border-gray-100' : 'border-gray-100'
             }`}>
+            
             <div className={`h-1.5 w-full ${booking.status === 'confirmed'
                     ? 'bg-gradient-to-r from-green-400 to-green-500'
                     : 'bg-gray-200'
@@ -254,14 +255,13 @@ export default function CoachBookingsPage() {
 
     return (
         <>
-            <Navbar />
             <div className="max-w-2xl mx-auto px-4 py-8 space-y-6">
                 {/* Header */}
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900">Bookings</h1>
                     <p className="text-sm text-gray-400 mt-1">Manage your coaching sessions.</p>
                 </div>
-
+                
                 {/* Tabs */}
                 <div className="flex gap-2">
                     {TABS.map(({ key, label, count }) => (
@@ -289,8 +289,9 @@ export default function CoachBookingsPage() {
                         {error}
                     </p>
                 )}
-
+                
                 {/* List */}
+                
                 {loading ? (
                     <div className="space-y-4">
                         {Array.from({ length: 3 }).map((_, i) => (
@@ -328,8 +329,14 @@ export default function CoachBookingsPage() {
                         }
                     </div>
                 )}
+                <Link
+                    href="/dashboard/coach"
+                    className="inline-flex items-center gap-1 text-sm text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                    <ChevronLeft className="w-4 h-4" />
+                    Back to dashboard
+                </Link>
             </div>
-            <Footer />
         </>
     )
 }
