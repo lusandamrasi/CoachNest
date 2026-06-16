@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { Calendar, Clock, MapPin, ChevronRight, Check, X, AlertCircle } from 'lucide-react'
-import Navbar from '@/components/layout/Navbar'
+import { Calendar, Clock, MapPin, ChevronRight, Check, X, AlertCircle, ChevronLeft } from 'lucide-react'
+import Link from 'next/link'
 import Footer from '@/components/layout/Footer'
 
 type Booking = {
@@ -213,7 +213,6 @@ export default function MyBookingsPage() {
 
     return (
         <>
-        <Navbar />
             <div className="max-w-2xl mx-auto px-4 py-8 space-y-6">
             {/* Header */}
             <div className="flex items-start justify-between">
@@ -274,7 +273,15 @@ export default function MyBookingsPage() {
                     ))}
                 </div>
             )}
+                <Link
+                    href="/dashboard/client"
+                    className="inline-flex items-center gap-1 text-sm text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                    <ChevronLeft className="w-4 h-4" />
+                    Back to dashboard
+                </Link>
         </div>
+            
         <Footer />
         </>
     )

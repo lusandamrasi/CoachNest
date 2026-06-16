@@ -142,6 +142,7 @@ export default function CoachBookingPage() {
             start_time: selectedSlot.start_time,
             end_time: selectedSlot.end_time,
             status: 'pending',
+            paid: false,
         })
 
         if (error) {

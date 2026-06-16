@@ -4,6 +4,7 @@ import { Search, CalendarDays } from 'lucide-react'
 import DashboardNav from '@/components/layout/DashboardNav'
 import Card from '@/components/ui/Card'
 import Link from 'next/link'
+import ClientBookingCalendar from '@/components/client/ClientBookingCalendar'
 
 export const metadata = { title: 'Client Dashboard — CoachNest' }
 
@@ -39,6 +40,19 @@ export default async function ClientDashboard() {
     .single()
 
   if (profile?.role === 'coach') redirect('/dashboard/coach')
+  
+  const { data: bookings } = await supabase
+    .from('bookings')
+    .select(`
+    id, date, start_time, end_time, status, paid,
+    coach_profiles (
+      sport, hourly_rate,
+      profiles ( full_name, avatar_url )
+    )
+  `)
+    .eq('student_id', user.id)
+    .eq('status', 'confirmed')
+    .order('date', { ascending: true })
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -73,7 +87,10 @@ export default async function ClientDashboard() {
             </Card>
           ))}
         </div>
+        <ClientBookingCalendar bookings={bookings ?? []} />
       </main>
+      
+
     </div>
   )
 }
