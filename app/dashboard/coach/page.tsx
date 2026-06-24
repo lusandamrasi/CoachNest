@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import { CalendarDays, ClipboardList, UserPen, AlertTriangle } from 'lucide-react'
+import { CalendarDays, ClipboardList, UserPen, AlertTriangle, ShieldCheck } from 'lucide-react'
 import DashboardNav from '@/components/layout/DashboardNav'
 import Card from '@/components/ui/Card'
 import Link from 'next/link'
@@ -32,6 +32,14 @@ const PLACEHOLDER_CARDS = [
     href: '/dashboard/coach/manage-booking',
     cta: 'View bookings →',
     color: 'text-purple-600 bg-purple-50',
+  },
+  {
+    icon: ShieldCheck,
+    title: 'Verification',
+    description: 'Upload your ID and qualifications to become a verified coach.',
+    href: '/dashboard/coach/verification',
+    cta: 'Verify account →',
+    color: 'text-amber-600 bg-amber-50',
   },
 ]
 
@@ -100,7 +108,7 @@ export default async function CoachDashboard() {
           </div>
         )}
 
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {PLACEHOLDER_CARDS.map((card) => {
             const inner = (
               <Card className="group h-full transition-all hover:-translate-y-0.5 hover:shadow-md">

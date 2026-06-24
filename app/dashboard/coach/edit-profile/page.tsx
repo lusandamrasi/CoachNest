@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import DashboardNav from '@/components/layout/DashboardNav'
-import ProfileForm from '@/components/coach/ProfileForm'
+import ProfileForm, { type SessionPackage } from '@/components/coach/ProfileForm'
 
 export const metadata = { title: 'Edit Profile — CoachNest' }
 
@@ -20,7 +20,11 @@ export default async function EditProfilePage() {
 
   const { data: coach } = await supabase
     .from('coach_profiles')
-    .select('sport, bio, hourly_rate, location, years_experience, intro_video_url')
+    .select(`
+      sport, bio, hourly_rate, location, years_experience, intro_video_url,
+      age_groups_coached, experience_levels, coaching_types, languages_spoken,
+      session_packages, travel_radius_km, coaching_photos
+    `)
     .eq('id', user.id)
     .single()
 
@@ -52,6 +56,13 @@ export default async function EditProfilePage() {
             location: coach?.location ?? null,
             years_experience: coach?.years_experience ?? null,
             intro_video_url: coach?.intro_video_url ?? null,
+            age_groups_coached: coach?.age_groups_coached ?? [],
+            experience_levels: coach?.experience_levels ?? [],
+            coaching_types: coach?.coaching_types ?? [],
+            languages_spoken: coach?.languages_spoken ?? [],
+            session_packages: (coach?.session_packages as SessionPackage[] | null) ?? [],
+            travel_radius_km: coach?.travel_radius_km ?? 0,
+            coaching_photos: coach?.coaching_photos ?? [],
           }}
         />
       </main>
