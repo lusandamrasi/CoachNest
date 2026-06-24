@@ -69,7 +69,7 @@ export default function CoachCard({ coach, onBook }: { coach: Coach; onBook: (id
                     <div>
                         {coach.hourly_rate != null ? (
                             <>
-                                <span className="text-lg font-bold text-gray-900">${coach.hourly_rate}</span>
+                                <span className="text-lg font-bold text-gray-900">R{coach.hourly_rate}</span>
                                 <span className="text-xs text-gray-400 ml-1">/ hr</span>
                             </>
                         ) : (

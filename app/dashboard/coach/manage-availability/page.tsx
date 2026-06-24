@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import Button from '@/components/ui/Button'
 import Link from 'next/link'
-import { ChevronLeft } from 'lucide-react'
+import { ChevronLeft, Users } from 'lucide-react'
 
 const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
 
@@ -24,6 +24,7 @@ type Slot = {
     day_of_week: number
     start_time: string
     end_time: string
+    num_clients: number
 }
 
 export default function AvailabilityPage() {
@@ -35,6 +36,7 @@ export default function AvailabilityPage() {
     const [selectedDay, setSelectedDay] = useState<number>(1)
     const [startTime, setStartTime] = useState('09:00')
     const [endTime, setEndTime] = useState('10:00')
+    const [numClients, setNumClients] = useState<number>(1)
     const [pendingSlots, setPendingSlots] = useState<Slot[]>([])
     const [saving, setSaving] = useState(false)
     const [error, setError] = useState('')
@@ -50,7 +52,6 @@ export default function AvailabilityPage() {
                 .from('availability')
                 .select('*')
                 .eq('coach_id', user.id)
-                .order('day_of_week')
 
             if (data) setSavedSlots(data)
         }
@@ -80,7 +81,12 @@ export default function AvailabilityPage() {
             return
         }
 
-        setPendingSlots((prev) => [...prev, { day_of_week: selectedDay, start_time: startTime, end_time: endTime }])
+        if (numClients <= 0) {
+            setAddError('Too few clients selected.')
+            return
+        }
+
+        setPendingSlots((prev) => [...prev, { day_of_week: selectedDay, start_time: startTime, end_time: endTime, num_clients: numClients }])
     }
 
     const removePendingSlot = (index: number) => {
@@ -112,11 +118,13 @@ export default function AvailabilityPage() {
             day_of_week: s.day_of_week,
             start_time: s.start_time,
             end_time: s.end_time,
+            num_clients: s.num_clients ?? 1,
         }))
 
         if (allSlots.length > 0) {
             const { error: insertError } = await supabase.from('availability').insert(allSlots)
             if (insertError) {
+                console.log(insertError.message)
                 setError('Failed to save. Please try again.')
                 setSaving(false)
                 return
@@ -148,6 +156,19 @@ export default function AvailabilityPage() {
             {/* Add slot form */}
             <div className="rounded-xl border border-gray-200 bg-white p-5 space-y-4">
                 <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Add a Slot</h2>
+                <div className="space-y-3">
+                    <div className="flex flex-col gap-1">
+                        <label className="text-sm text-gray-600 font-medium">Maximum Group Size</label>
+                        <input
+                            type="number"
+                            min={1}
+                            max={20}
+                            value={numClients}
+                            onChange={(e) => setNumClients(Math.max(1, parseInt(e.target.value) || 1))}
+                            className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-blue-400 focus:outline-none"
+                        />
+                    </div>
+                </div>
 
                 <div className="space-y-3">
                     <div className="flex flex-col gap-1">
@@ -219,25 +240,30 @@ export default function AvailabilityPage() {
                                     {grouped[day]
                                         .sort((a, b) => a.start_time.localeCompare(b.start_time))
                                         .map((slot, i) => {
-                                            const isSaved = savedGrouped[day]?.some(
-                                                (s) => s.start_time === slot.start_time && s.end_time === slot.end_time
-                                            )
                                             const isPending = pendingGrouped[day]?.some(
                                                 (s) => s.start_time === slot.start_time && s.end_time === slot.end_time
                                             )
 
                                             return (
                                                 <div key={i} className="flex items-center justify-between px-4 py-3">
-                                                    <div className="flex items-center gap-3">
+                                                    <div className="flex items-center gap-3 flex-wrap">
                                                         <span className="text-sm text-gray-700">
                                                             {formatTime(slot.start_time)} – {formatTime(slot.end_time)}
                                                         </span>
+
+                                                        {/* Client capacity badge */}
+                                                        <span className="flex items-center gap-1 text-xs font-medium text-gray-500 bg-white border border-gray-200 px-2 py-0.5 rounded-full">
+                                                            <Users className="w-3 h-3 text-gray-400" />
+                                                            {slot.num_clients ?? 1} client{(slot.num_clients ?? 1) !== 1 ? 's' : ''}
+                                                        </span>
+
                                                         {isPending && (
                                                             <span className="text-xs bg-blue-100 text-blue-600 font-medium px-2 py-0.5 rounded-full">
                                                                 New
                                                             </span>
                                                         )}
                                                     </div>
+
                                                     <button
                                                         type="button"
                                                         onClick={() => {
