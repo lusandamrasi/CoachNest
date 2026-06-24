@@ -25,6 +25,14 @@ const PLACEHOLDER_CARDS = [
     cta: 'My bookings →',
     color: 'text-green-600 bg-green-50',
   },
+  {
+    icon: CalendarDays,
+    title: 'Find Sessions',
+    description: 'Find your next session.',
+    href: '/booking/find-session',
+    cta: 'Find sessions →',
+    color: 'text-green-600 bg-green-50',
+  },
 ]
 
 export default async function ClientDashboard() {
