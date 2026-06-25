@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import { Search, CalendarDays } from 'lucide-react'
+import { Search, CalendarCheck, CalendarSearch, UserPen} from 'lucide-react'
 import DashboardNav from '@/components/layout/DashboardNav'
 import Card from '@/components/ui/Card'
 import Link from 'next/link'
@@ -18,20 +18,28 @@ const PLACEHOLDER_CARDS = [
     color: 'text-blue-600 bg-blue-50',
   },
   {
-    icon: CalendarDays,
+    icon: CalendarCheck,
     title: 'My Bookings',
     description: 'View your upcoming and past coaching sessions.',
     href: '/booking/my-bookings',
     cta: 'My bookings →',
-    color: 'text-green-600 bg-green-50',
+    color: 'text-purple-600 bg-purple-50',
   },
   {
-    icon: CalendarDays,
+    icon: CalendarSearch,
     title: 'Find Sessions',
     description: 'Find your next session.',
     href: '/booking/find-session',
     cta: 'Find sessions →',
     color: 'text-green-600 bg-green-50',
+  },
+  {
+    icon: UserPen,
+    title: 'Change Your Profile',
+    description: 'Let coaches know more about you.',
+    href: '/client',
+    cta: 'Change profile →',
+    color: 'text-orange-600 bg-orange-50',
   },
 ]
 

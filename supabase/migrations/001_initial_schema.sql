@@ -24,6 +24,27 @@ create policy "Users can update their own profile"
 create policy "Users can insert their own profile"
   on profiles for insert with check (auth.uid() = id);
 
+-- Allow users to upload their own avatar
+create policy "Users can upload their own avatar"
+  on storage.objects for insert
+  with check (
+    bucket_id = 'avatars' and
+    auth.uid()::text = (storage.foldername(name))[1]
+  );
+
+-- Allow users to update their own avatar
+create policy "Users can update their own avatar"
+  on storage.objects for update
+  using (
+    bucket_id = 'avatars' and
+    auth.uid()::text = (storage.foldername(name))[1]
+  );
+
+-- Allow everyone to view avatars
+create policy "Avatars are publicly viewable"
+  on storage.objects for select
+  using (bucket_id = 'avatars');
+
 -- ────────────────────────────────────────────────
 -- COACH PROFILES
 -- ────────────────────────────────────────────────
@@ -52,6 +73,32 @@ create policy "Coaches can update their own profile"
 
 create policy "Coaches can insert their own profile"
   on coach_profiles for insert with check (auth.uid() = id);
+
+-- ────────────────────────────────────────────────
+-- CLIENT PROFILES
+-- ────────────────────────────────────────────────
+create table if not exists client_profiles (
+  id          uuid references profiles on delete cascade primary key,
+  bio         text,
+  rating      integer default 3,
+  location    text,
+  is_parent   boolean,
+  created_at  timestamptz default now()
+);
+
+alter table client_profiles enable row level security;
+
+create policy "Client profiles are viewable by everyone"
+  on client_profiles for select using (true);
+
+create policy "Clients can view their own profile"
+  on client_profiles for select using (auth.uid() = id);
+
+create policy "Clients can update their own profile"
+  on client_profiles for update using (auth.uid() = id);
+
+create policy "Clients can insert their own profile"
+  on client_profiles for insert with check (auth.uid() = id);
 
 -- ────────────────────────────────────────────────
 -- AVAILABILITY

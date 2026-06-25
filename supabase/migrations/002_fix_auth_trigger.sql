@@ -33,6 +33,11 @@ begin
       values (new.id, v_sport)
       on conflict (id) do nothing;
     end if;
+    if v_role = 'client' then
+      insert into public.client_profiles (id)
+      values (new.id)
+      on conflict (id) do nothing;
+    end if;
   exception when others then
     raise warning 'handle_new_user failed for user %: %', new.id, sqlerrm;
   end;
