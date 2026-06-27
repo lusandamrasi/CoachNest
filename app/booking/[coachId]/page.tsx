@@ -225,7 +225,7 @@ export default function CoachBookingPage() {
                             )}
                             {coach.hourly_rate != null && (
                                 <div className="flex items-center gap-1.5 text-sm font-semibold text-gray-700">
-                                    <Clock className="w-3.5 h-3.5 text-gray-400" />${coach.hourly_rate} / hr
+                                    <Clock className="w-3.5 h-3.5 text-gray-400" />R{coach.hourly_rate} / hr
                                 </div>
                             )}
                         </div>
@@ -346,7 +346,7 @@ export default function CoachBookingPage() {
                                 <div className="rounded-xl bg-blue-50 border border-blue-100 px-4 py-3 text-sm text-blue-700">
                                     <span className="font-semibold">Summary: </span>
                                     {formatDateLong(selectedDate)} · {formatTime(selectedSlot.start_time)} – {formatTime(selectedSlot.end_time)}
-                                    {coach.hourly_rate != null && <span className="ml-2 text-blue-500">· ${coach.hourly_rate}</span>}
+                                    {coach.hourly_rate != null && <span className="ml-2 text-blue-500">· R{coach.hourly_rate}</span>}
                                 </div>
 
                                 {bookingError && <p className="text-sm text-red-500">{bookingError}</p>}

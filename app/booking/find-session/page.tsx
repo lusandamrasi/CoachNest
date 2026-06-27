@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { ChevronLeft, ChevronRight, Search, SlidersHorizontal, X, Users } from 'lucide-react'
 import CoachCard, { type Coach } from '@/components/booking/CoachCard'
+import Navbar from '@/components/layout/Navbar'
 
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
 const DAY_HEADERS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
@@ -84,7 +85,7 @@ function FilterPanel({
                 <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Location</label>
                 <input
                     type="text"
-                    placeholder="e.g. London"
+                    placeholder="e.g. Cape Town"
                     value={filters.location}
                     onChange={(e) => onChange({ ...filters, location: e.target.value })}
                     className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:border-blue-400 bg-gray-50"
@@ -93,7 +94,7 @@ function FilterPanel({
 
             {/* Max rate */}
             <div className="space-y-1">
-                <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Max rate ($/hr)</label>
+                <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Max rate (R/hr)</label>
                 <input
                     type="number"
                     min={0}
@@ -226,6 +227,7 @@ export default function BrowseByDatePage() {
 
     return (
         <div className="max-w-7xl mx-auto px-4 py-8 space-y-6">
+            <Navbar />
             {/* Header */}
             <div>
                 <h1 className="text-2xl font-bold text-gray-900">Find a Coach</h1>

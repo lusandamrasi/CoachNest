@@ -121,6 +121,12 @@ export default function Navbar() {
           {!authReady ? null : authUser ? (
             <>
               <Link
+                href={authUser.dashboardHref} 
+                className="text-sm font-medium text-gray-600 transition-colors hover:text-blue-600"
+                >
+                My Dashboard:
+              </Link>
+              <Link
                 href={authUser.dashboardHref}
                 aria-label="Go to dashboard"
                 className="block h-10 w-10 overflow-hidden rounded-full ring-2 ring-transparent transition-all hover:ring-blue-200 focus-visible:outline-none focus-visible:ring-blue-400"
