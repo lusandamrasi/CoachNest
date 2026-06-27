@@ -1,10 +1,11 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import { CalendarDays, ClipboardList, UserPen, AlertTriangle, ShieldCheck } from 'lucide-react'
+import { CalendarDays, ClipboardList, UserPen, ShieldCheck } from 'lucide-react'
 import DashboardNav from '@/components/layout/DashboardNav'
 import Card from '@/components/ui/Card'
 import Link from 'next/link'
 import BookingCalendar from '@/components/coach/BookingCalender'
+import Greeting from '@/components/ui/Greeting'
 
 export const metadata = { title: 'Coach Dashboard — CoachNest' }
 
@@ -56,12 +57,6 @@ export default async function CoachDashboard() {
 
   if (profile?.role !== 'coach') redirect('/dashboard/client')
 
-  const { data: coach } = await supabase
-    .from('coach_profiles')
-    .select('intro_video_url')
-    .eq('id', user.id)
-    .single()
-
   const { data: bookings } = await supabase
     .from('bookings')
     .select(`
@@ -71,8 +66,6 @@ export default async function CoachDashboard() {
     .eq('coach_id', user.id)
     .eq('status', 'confirmed')
     .order('date', { ascending: true })
-
-  const needsVideo = !coach?.intro_video_url
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -86,27 +79,10 @@ export default async function CoachDashboard() {
         <div className="mb-6">
           <p className="text-sm font-medium text-blue-600">Coach Dashboard</p>
           <h1 className="mt-1 text-3xl font-bold text-gray-900">
-            Welcome back, {profile?.full_name?.split(' ')[0] ?? 'Coach'} 👋
+            <Greeting fullName={profile?.full_name ?? null} fallback="Coach" />
           </h1>
           <p className="mt-2 text-gray-500">Here&apos;s an overview of your coaching hub.</p>
         </div>
-
-        {needsVideo && (
-          <div className="mb-8 flex flex-col gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-amber-900 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-start gap-3">
-              <AlertTriangle className="mt-0.5 h-5 w-5 flex-shrink-0 text-amber-600" />
-              <p className="text-sm">
-                <span className="font-semibold">Complete your profile</span> — add an intro video so clients can find you.
-              </p>
-            </div>
-            <Link
-              href="/dashboard/coach/edit-profile"
-              className="inline-flex items-center gap-1.5 rounded-lg bg-amber-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-amber-700"
-            >
-              Add Now →
-            </Link>
-          </div>
-        )}
 
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {PLACEHOLDER_CARDS.map((card) => {

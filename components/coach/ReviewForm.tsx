@@ -77,11 +77,17 @@ export default function ReviewForm({ coachId, clientId }: ReviewFormProps) {
         <textarea
           id="review_text"
           value={text}
-          onChange={(e) => setText(e.target.value)}
+          onChange={(e) => setText(e.target.value.slice(0, 500))}
           rows={3}
-          placeholder="Share your experience working with this coach."
+          maxLength={500}
+          placeholder="Share your experience with this coach..."
           className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
         />
+        <div className="mt-1 flex justify-end">
+          <span className={`text-xs ${text.length >= 500 ? 'text-red-500' : 'text-gray-400'}`}>
+            {text.length} / 500
+          </span>
+        </div>
       </div>
 
       {error && (
@@ -91,7 +97,7 @@ export default function ReviewForm({ coachId, clientId }: ReviewFormProps) {
         </div>
       )}
 
-      <Button type="submit" size="sm" loading={submitting}>
+      <Button type="submit" size="sm" loading={submitting} disabled={rating < 1}>
         Submit Review
       </Button>
     </form>

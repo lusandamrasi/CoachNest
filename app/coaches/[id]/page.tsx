@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import Image from 'next/image'
 import {
@@ -8,7 +9,7 @@ import {
   Users,
   BookOpen,
   Globe2,
-  CheckCircle2,
+  CalendarPlus,
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import Navbar from '@/components/layout/Navbar'
@@ -26,13 +27,6 @@ type VerificationStatus =
   | 'id_verified'
   | 'qualification_verified'
   | 'verified'
-
-const STATUS_STEPS: { key: VerificationStatus; label: string }[] = [
-  { key: 'pending', label: 'Pending' },
-  { key: 'id_verified', label: 'ID Verified' },
-  { key: 'qualification_verified', label: 'Qualification Verified' },
-  { key: 'verified', label: 'Verified Coach' },
-]
 
 function initials(name: string | null) {
   if (!name) return '?'
@@ -98,6 +92,7 @@ export default async function CoachProfilePage({ params }: { params: { id: strin
 
   const { data: { user } } = await supabase.auth.getUser()
   let viewerIsClient = false
+  let viewerIsCoach = false
   if (user) {
     const { data: viewerProfile } = await supabase
       .from('profiles')
@@ -105,6 +100,7 @@ export default async function CoachProfilePage({ params }: { params: { id: strin
       .eq('id', user.id)
       .single()
     viewerIsClient = viewerProfile?.role === 'client'
+    viewerIsCoach = viewerProfile?.role === 'coach'
   }
 
   const packages = (coach.session_packages as SessionPackage[] | null) ?? []
@@ -114,12 +110,11 @@ export default async function CoachProfilePage({ params }: { params: { id: strin
   const languages: string[] = (coach.languages_spoken as string[] | null) ?? []
   const photos: string[] = (coach.coaching_photos as string[] | null) ?? []
   const status = (coach.verification_status as VerificationStatus) ?? 'unverified'
-  const statusIndex = STATUS_STEPS.findIndex((s) => s.key === status)
+  const isVerified = status === 'verified'
 
-  let verificationBadge: { label: string; variant: 'green' | 'blue' | 'gray' } | null = null
-  if (status === 'verified') verificationBadge = { label: 'Verified ✓', variant: 'green' }
-  else if (status === 'pending' || status === 'id_verified' || status === 'qualification_verified')
-    verificationBadge = { label: 'Pending', variant: 'gray' }
+  const bookHref = viewerIsClient
+    ? `/booking/${coach.id}`
+    : `/auth/login?redirect=${encodeURIComponent(`/booking/${coach.id}`)}`
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -149,9 +144,7 @@ export default async function CoachProfilePage({ params }: { params: { id: strin
               <div className="flex flex-wrap items-center gap-3">
                 <h1 className="text-2xl font-bold text-gray-900">{name}</h1>
                 {coach.sport && <Badge variant="blue">{coach.sport}</Badge>}
-                {verificationBadge && (
-                  <Badge variant={verificationBadge.variant}>{verificationBadge.label}</Badge>
-                )}
+                {isVerified && <Badge variant="green">✓ Verified Coach</Badge>}
               </div>
 
               <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-sm text-gray-600">
@@ -199,6 +192,19 @@ export default async function CoachProfilePage({ params }: { params: { id: strin
             </div>
           </div>
         </Card>
+
+        {/* Book a Session */}
+        {!viewerIsCoach && (
+          <div className="mt-6">
+            <Link
+              href={bookHref}
+              className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-6 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-blue-700 sm:w-auto"
+            >
+              <CalendarPlus className="h-4 w-4" />
+              Book a Session
+            </Link>
+          </div>
+        )}
 
         {/* About */}
         {coach.bio?.trim() && (
@@ -347,38 +353,6 @@ export default async function CoachProfilePage({ params }: { params: { id: strin
             </div>
           </Card>
         )}
-
-        {/* Verification status */}
-        <Card padding="lg" className="mt-6">
-          <h2 className="text-lg font-semibold text-gray-900">Verification</h2>
-          <div className="mt-4 flex flex-wrap items-center gap-2 sm:gap-3">
-            {STATUS_STEPS.map((step, i) => {
-              const isActive = step.key === status
-              const isReached = statusIndex >= i && statusIndex >= 0
-              return (
-                <div key={step.key} className="flex items-center gap-2">
-                  <span
-                    className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-medium ${
-                      isActive
-                        ? step.key === 'verified'
-                          ? 'bg-green-100 text-green-700'
-                          : step.key === 'pending'
-                          ? 'bg-gray-200 text-gray-700'
-                          : 'bg-blue-100 text-blue-700'
-                        : isReached
-                        ? 'bg-gray-100 text-gray-500'
-                        : 'bg-gray-50 text-gray-400'
-                    }`}
-                  >
-                    {isReached && <CheckCircle2 className="h-3 w-3" />}
-                    {step.label}
-                  </span>
-                  {i < STATUS_STEPS.length - 1 && <span className="text-gray-300">→</span>}
-                </div>
-              )
-            })}
-          </div>
-        </Card>
 
         {/* Reviews */}
         <Card padding="lg" className="mt-6">

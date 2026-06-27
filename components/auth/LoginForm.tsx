@@ -1,15 +1,18 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { loginSchema } from '@/lib/validations/auth'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
+import PasswordInput from '@/components/ui/PasswordInput'
 
 export default function LoginForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const redirectTo = searchParams?.get('redirect') ?? null
   const [loading, setLoading] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [serverError, setServerError] = useState('')
@@ -48,7 +51,9 @@ export default function LoginForm() {
       .eq('id', data.user.id)
       .single()
 
-    router.push(profile?.role === 'coach' ? '/dashboard/coach' : '/dashboard/client')
+    const fallback = profile?.role === 'coach' ? '/dashboard/coach' : '/dashboard/client'
+    const target = redirectTo && redirectTo.startsWith('/') ? redirectTo : fallback
+    router.push(target)
     router.refresh()
   }
 
@@ -68,10 +73,9 @@ export default function LoginForm() {
         error={errors.email}
       />
 
-      <Input
+      <PasswordInput
         id="password"
         name="password"
-        type="password"
         label="Password"
         placeholder="••••••••"
         autoComplete="current-password"

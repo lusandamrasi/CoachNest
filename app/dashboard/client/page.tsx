@@ -5,6 +5,7 @@ import DashboardNav from '@/components/layout/DashboardNav'
 import Card from '@/components/ui/Card'
 import Link from 'next/link'
 import ClientBookingCalendar from '@/components/client/ClientBookingCalendar'
+import Greeting from '@/components/ui/Greeting'
 
 export const metadata = { title: 'Client Dashboard — CoachNest' }
 
@@ -82,7 +83,7 @@ export default async function ClientDashboard() {
         <div className="mb-10">
           <p className="text-sm font-medium text-blue-600">Client Dashboard</p>
           <h1 className="mt-1 text-3xl font-bold text-gray-900">
-            Welcome back, {profile?.full_name?.split(' ')[0] ?? 'there'} 👋
+            <Greeting fullName={profile?.full_name ?? null} fallback="there" />
           </h1>
           <p className="mt-2 text-gray-500">Find a coach and start training today.</p>
         </div>

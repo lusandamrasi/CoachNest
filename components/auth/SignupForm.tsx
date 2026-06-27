@@ -8,6 +8,7 @@ import { createClient } from '@/lib/supabase/client'
 import { signupSchema } from '@/lib/validations/auth'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
+import PasswordInput from '@/components/ui/PasswordInput'
 import type { UserRole } from '@/lib/types'
 
 export default function SignupForm() {
@@ -120,10 +121,9 @@ export default function SignupForm() {
         error={errors.email}
       />
 
-      <Input
+      <PasswordInput
         id="password"
         name="password"
-        type="password"
         label="Password"
         placeholder="••••••••"
         autoComplete="new-password"

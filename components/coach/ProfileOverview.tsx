@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import Image from 'next/image'
-import { MapPin, Clock3, Banknote, Pencil } from 'lucide-react'
+import { MapPin, Clock3, Banknote, Pencil, Mail, Phone } from 'lucide-react'
 import Card from '@/components/ui/Card'
 import Badge from '@/components/ui/Badge'
 import Button from '@/components/ui/Button'
@@ -15,6 +15,8 @@ interface ProfileOverviewProps {
   yearsExperience: number | null
   introVideoUrl: string | null
   isPublished: boolean
+  email: string | null
+  phoneNumber: string | null
 }
 
 export default function ProfileOverview({
@@ -27,6 +29,8 @@ export default function ProfileOverview({
   yearsExperience,
   introVideoUrl,
   isPublished,
+  email,
+  phoneNumber,
 }: ProfileOverviewProps) {
   const initial = (fullName?.trim()?.[0] ?? '?').toUpperCase()
 
@@ -78,6 +82,18 @@ export default function ProfileOverview({
                   <span className="inline-flex items-center gap-1.5">
                     <Banknote className="h-4 w-4 text-gray-400" />
                     R{hourlyRate} / session
+                  </span>
+                )}
+                {email && (
+                  <span className="inline-flex items-center gap-1.5">
+                    <Mail className="h-4 w-4 text-gray-400" />
+                    {email}
+                  </span>
+                )}
+                {phoneNumber && (
+                  <span className="inline-flex items-center gap-1.5">
+                    <Phone className="h-4 w-4 text-gray-400" />
+                    {phoneNumber}
                   </span>
                 )}
               </div>

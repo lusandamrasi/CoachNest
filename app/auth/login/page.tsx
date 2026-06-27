@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import Link from 'next/link'
 import LoginForm from '@/components/auth/LoginForm'
 
@@ -16,7 +17,9 @@ export default function LoginPage() {
         <div className="rounded-2xl border border-gray-200 bg-white p-8 shadow-sm">
           <h1 className="mb-1 text-2xl font-bold text-gray-900">Welcome back</h1>
           <p className="mb-6 text-sm text-gray-500">Sign in to your CoachNest account</p>
-          <LoginForm />
+          <Suspense fallback={null}>
+            <LoginForm />
+          </Suspense>
         </div>
       </div>
     </div>

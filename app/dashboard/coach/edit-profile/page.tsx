@@ -21,9 +21,10 @@ export default async function EditProfilePage() {
   const { data: coach } = await supabase
     .from('coach_profiles')
     .select(`
-      sport, bio, hourly_rate, location, years_experience, intro_video_url,
+      sport, bio, hourly_rate, location, location_lat, location_lng,
+      years_experience, intro_video_url,
       age_groups_coached, experience_levels, coaching_types, languages_spoken,
-      session_packages, travel_radius_km, coaching_photos
+      session_packages, travel_radius_km, coaching_photos, email, phone_number
     `)
     .eq('id', user.id)
     .single()
@@ -54,6 +55,8 @@ export default async function EditProfilePage() {
             bio: coach?.bio ?? null,
             hourly_rate: coach?.hourly_rate ?? null,
             location: coach?.location ?? null,
+            location_lat: coach?.location_lat != null ? Number(coach.location_lat) : null,
+            location_lng: coach?.location_lng != null ? Number(coach.location_lng) : null,
             years_experience: coach?.years_experience ?? null,
             intro_video_url: coach?.intro_video_url ?? null,
             age_groups_coached: coach?.age_groups_coached ?? [],
@@ -63,6 +66,8 @@ export default async function EditProfilePage() {
             session_packages: (coach?.session_packages as SessionPackage[] | null) ?? [],
             travel_radius_km: coach?.travel_radius_km ?? 0,
             coaching_photos: coach?.coaching_photos ?? [],
+            email: coach?.email ?? user.email ?? null,
+            phone_number: coach?.phone_number ?? null,
           }}
         />
       </main>

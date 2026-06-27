@@ -14,12 +14,40 @@ type VerificationStatus =
   | 'qualification_verified'
   | 'verified'
 
-const STATUS_STEPS: { key: VerificationStatus; label: string; color: string }[] = [
-  { key: 'pending', label: 'Pending', color: 'bg-gray-200 text-gray-700' },
-  { key: 'id_verified', label: 'ID Verified', color: 'bg-blue-100 text-blue-700' },
-  { key: 'qualification_verified', label: 'Qualification Verified', color: 'bg-blue-100 text-blue-700' },
-  { key: 'verified', label: 'Verified Coach', color: 'bg-green-100 text-green-700' },
-]
+const STATUS_CARD: Record<
+  VerificationStatus,
+  { tone: 'gray' | 'amber' | 'blue' | 'green'; message: string }
+> = {
+  unverified: {
+    tone: 'gray',
+    message: 'Your documents have not been submitted yet.',
+  },
+  pending: {
+    tone: 'amber',
+    message:
+      'Document verification pending — the CoachNest team will review your submission within 3–5 business days.',
+  },
+  id_verified: {
+    tone: 'blue',
+    message: 'ID verified. Awaiting qualification review.',
+  },
+  qualification_verified: {
+    tone: 'blue',
+    message: 'Qualifications verified. Final review in progress.',
+  },
+  verified: {
+    tone: 'green',
+    message:
+      '✓ You are a Verified Coach. Your badge is now visible on your public profile.',
+  },
+}
+
+const TONE_CLASSES: Record<'gray' | 'amber' | 'blue' | 'green', string> = {
+  gray: 'border-gray-200 bg-gray-50 text-gray-700',
+  amber: 'border-amber-200 bg-amber-50 text-amber-800',
+  blue: 'border-blue-200 bg-blue-50 text-blue-800',
+  green: 'border-green-200 bg-green-50 text-green-800',
+}
 
 const ID_ACCEPTED = ['application/pdf', 'image/jpeg', 'image/png']
 const QUAL_ACCEPTED = ['application/pdf', 'image/jpeg', 'image/png']
@@ -194,7 +222,6 @@ export default function VerificationForm({ userId, initial }: VerificationFormPr
     router.refresh()
   }
 
-  const statusIndex = STATUS_STEPS.findIndex((s) => s.key === status)
   const canSubmit = declarationAccepted && !!idDocUrl && !submitting
 
   return (
@@ -213,39 +240,17 @@ export default function VerificationForm({ userId, initial }: VerificationFormPr
         </div>
       )}
 
-      {/* Status row */}
+      {/* Status card */}
       <Card padding="lg">
         <div className="flex items-center gap-2 text-blue-600">
           <ShieldCheck className="h-5 w-5" />
           <h2 className="text-lg font-semibold text-gray-900">Verification Status</h2>
         </div>
-        <div className="mt-5 flex flex-wrap items-center gap-2 sm:gap-3">
-          {STATUS_STEPS.map((step, i) => {
-            const isActive = step.key === status
-            const isReached = statusIndex >= i && statusIndex >= 0
-            return (
-              <div key={step.key} className="flex items-center gap-2">
-                <span
-                  className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${
-                    isActive
-                      ? step.color
-                      : isReached
-                      ? 'bg-gray-100 text-gray-500'
-                      : 'bg-gray-50 text-gray-400'
-                  }`}
-                >
-                  {step.label}
-                </span>
-                {i < STATUS_STEPS.length - 1 && (
-                  <span className="text-gray-300">→</span>
-                )}
-              </div>
-            )
-          })}
+        <div
+          className={`mt-4 rounded-xl border px-4 py-3 text-sm ${TONE_CLASSES[STATUS_CARD[status].tone]}`}
+        >
+          {STATUS_CARD[status].message}
         </div>
-        <p className="mt-4 text-sm text-gray-500">
-          Documents are reviewed manually by the CoachNest team within 3–5 business days.
-        </p>
       </Card>
 
       {/* Uploads */}

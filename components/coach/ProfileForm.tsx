@@ -10,6 +10,9 @@ import Input from '@/components/ui/Input'
 import Card from '@/components/ui/Card'
 import AvatarUpload from './AvatarUpload'
 import VideoUpload from './VideoUpload'
+import LanguagesSelect from './LanguagesSelect'
+import LocationAutocomplete from './LocationAutocomplete'
+import TravelRadiusMap from './TravelRadiusMap'
 
 export const SPORT_OPTIONS = [
   'Tennis',
@@ -41,6 +44,8 @@ interface ProfileFormProps {
     bio: string | null
     hourly_rate: number | null
     location: string | null
+    location_lat: number | null
+    location_lng: number | null
     years_experience: number | null
     intro_video_url: string | null
     age_groups_coached: string[] | null
@@ -50,6 +55,8 @@ interface ProfileFormProps {
     session_packages: SessionPackage[] | null
     travel_radius_km: number | null
     coaching_photos: string[] | null
+    email: string | null
+    phone_number: string | null
   }
 }
 
@@ -64,6 +71,8 @@ export default function ProfileForm({ userId, initial }: ProfileFormProps) {
 
   const [fullName, setFullName] = useState(initial.full_name ?? '')
   const [location, setLocation] = useState(initial.location ?? '')
+  const [locationLat, setLocationLat] = useState<number | null>(initial.location_lat)
+  const [locationLng, setLocationLng] = useState<number | null>(initial.location_lng)
   const [sport, setSport] = useState<string>(
     initial.sport && (SPORT_OPTIONS as readonly string[]).includes(initial.sport)
       ? initial.sport
@@ -86,7 +95,8 @@ export default function ProfileForm({ userId, initial }: ProfileFormProps) {
   )
   const [coachingTypes, setCoachingTypes] = useState<string[]>(initial.coaching_types ?? [])
   const [languages, setLanguages] = useState<string[]>(initial.languages_spoken ?? [])
-  const [langDraft, setLangDraft] = useState('')
+  const [email, setEmail] = useState(initial.email ?? '')
+  const [phoneNumber, setPhoneNumber] = useState(initial.phone_number ?? '')
 
   const [packages, setPackages] = useState<SessionPackage[]>(initial.session_packages ?? [])
   const [travelRadius, setTravelRadius] = useState<number>(initial.travel_radius_km ?? 0)
@@ -123,19 +133,6 @@ export default function ProfileForm({ userId, initial }: ProfileFormProps) {
 
   function removePackage(index: number) {
     setPackages((p) => p.filter((_, i) => i !== index))
-  }
-
-  function commitLanguage() {
-    const value = langDraft.trim()
-    if (!value) return
-    if (!languages.includes(value)) {
-      setLanguages([...languages, value])
-    }
-    setLangDraft('')
-  }
-
-  function removeLanguage(value: string) {
-    setLanguages(languages.filter((l) => l !== value))
   }
 
   async function handlePhotoFiles(e: React.ChangeEvent<HTMLInputElement>) {
@@ -231,6 +228,8 @@ export default function ProfileForm({ userId, initial }: ProfileFormProps) {
           bio: bio.trim() || null,
           hourly_rate: parsedRate,
           location: location.trim() || null,
+          location_lat: locationLat,
+          location_lng: locationLng,
           years_experience: parsedYears,
           age_groups_coached: ageGroups,
           experience_levels: experienceLevels,
@@ -239,6 +238,8 @@ export default function ProfileForm({ userId, initial }: ProfileFormProps) {
           session_packages: cleanedPackages,
           travel_radius_km: travelRadius,
           coaching_photos: photos,
+          email: email.trim() || null,
+          phone_number: phoneNumber.trim() || null,
         })
         .eq('id', userId)
       if (cErr) throw new Error(`Coach profile update failed: ${cErr.message}`)
@@ -293,12 +294,16 @@ export default function ProfileForm({ userId, initial }: ProfileFormProps) {
             placeholder="Alex Johnson"
             autoComplete="name"
           />
-          <Input
+          <LocationAutocomplete
             id="location"
             label="Location"
-            value={location}
-            onChange={(e) => setLocation(e.target.value)}
             placeholder="Cape Town, ZA"
+            value={{ address: location, lat: locationLat, lng: locationLng }}
+            onChange={(next) => {
+              setLocation(next.address)
+              setLocationLat(next.lat)
+              setLocationLng(next.lng)
+            }}
           />
 
           <div className="flex flex-col gap-1">
@@ -327,6 +332,26 @@ export default function ProfileForm({ userId, initial }: ProfileFormProps) {
             value={years}
             onChange={(e) => setYears(e.target.value)}
             placeholder="5"
+          />
+
+          <Input
+            id="email"
+            type="email"
+            label="Email address"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="you@example.com"
+            autoComplete="email"
+          />
+
+          <Input
+            id="phone_number"
+            type="tel"
+            label="Phone number"
+            value={phoneNumber}
+            onChange={(e) => setPhoneNumber(e.target.value)}
+            placeholder="+27 82 123 4567"
+            autoComplete="tel"
           />
         </div>
 
@@ -456,41 +481,9 @@ export default function ProfileForm({ userId, initial }: ProfileFormProps) {
           </div>
 
           <div>
-            <label htmlFor="languages" className="text-sm font-medium text-gray-700">
-              Languages spoken
-            </label>
-            <div className="mt-2 flex flex-wrap items-center gap-2 rounded-lg border border-gray-300 px-3 py-2 focus-within:border-blue-600 focus-within:ring-2 focus-within:ring-blue-100">
-              {languages.map((lang) => (
-                <span
-                  key={lang}
-                  className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2.5 py-1 text-xs font-medium text-blue-700"
-                >
-                  {lang}
-                  <button
-                    type="button"
-                    onClick={() => removeLanguage(lang)}
-                    className="rounded-full p-0.5 text-blue-600 hover:bg-blue-100"
-                    aria-label={`Remove ${lang}`}
-                  >
-                    <X className="h-3 w-3" />
-                  </button>
-                </span>
-              ))}
-              <input
-                id="languages"
-                value={langDraft}
-                onChange={(e) => setLangDraft(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault()
-                    commitLanguage()
-                  } else if (e.key === 'Backspace' && langDraft === '' && languages.length > 0) {
-                    setLanguages(languages.slice(0, -1))
-                  }
-                }}
-                placeholder={languages.length === 0 ? 'Type a language and press Enter' : ''}
-                className="flex-1 min-w-[140px] border-0 bg-transparent text-sm text-gray-900 placeholder:text-gray-400 outline-none"
-              />
+            <p className="text-sm font-medium text-gray-700">Languages spoken</p>
+            <div className="mt-2">
+              <LanguagesSelect value={languages} onChange={setLanguages} />
             </div>
           </div>
         </div>
@@ -582,6 +575,7 @@ export default function ProfileForm({ userId, initial }: ProfileFormProps) {
               Will travel up to {travelRadius}km
             </span>
           </div>
+          <TravelRadiusMap lat={locationLat} lng={locationLng} radiusKm={travelRadius} />
         </div>
       </Card>
 
