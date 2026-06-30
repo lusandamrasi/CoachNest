@@ -24,6 +24,7 @@ type AvailabilitySlot = {
     day_of_week: number
     start_time: string
     end_time: string
+    notes: string | null
 }
 
 function getInitials(name: string | null) {
@@ -323,17 +324,24 @@ export default function CoachBookingPage() {
                                 <p className="text-sm font-semibold text-gray-700">
                                     Available times for {formatDateLong(selectedDate)}
                                 </p>
-                                <div className="flex flex-wrap gap-2">
+                                <div className="flex flex-col gap-2">
                                     {slotsForSelectedDay.map((slot) => (
                                         <button
                                             key={slot.id}
                                             onClick={() => { setSelectedSlot(slot); setBooked(false); setBookingError('') }}
-                                            className={`px-4 py-2 rounded-xl text-sm font-medium border transition-colors ${selectedSlot?.id === slot.id
+                                            className={`w-full text-left px-4 py-2.5 rounded-xl text-sm font-medium border transition-colors ${selectedSlot?.id === slot.id
                                                     ? 'bg-blue-600 border-blue-600 text-white'
-                                                    : 'border-gray-200 text-gray-600 hover:border-blue-300 hover:text-blue-600'
+                                                    : 'border-gray-200 text-gray-700 hover:border-blue-300 hover:text-blue-600'
                                                 }`}
                                         >
-                                            {formatTime(slot.start_time)} – {formatTime(slot.end_time)}
+                                            <div className="flex items-center justify-between gap-3">
+                                                <span>{formatTime(slot.start_time)} – {formatTime(slot.end_time)}</span>
+                                            </div>
+                                            {slot.notes && (
+                                                <p className={`mt-1 text-xs whitespace-pre-line ${selectedSlot?.id === slot.id ? 'text-blue-50' : 'text-gray-500'}`}>
+                                                    {slot.notes}
+                                                </p>
+                                            )}
                                         </button>
                                     ))}
                                 </div>

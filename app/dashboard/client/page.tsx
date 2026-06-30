@@ -77,6 +77,7 @@ export default async function ClientDashboard() {
         fullName={profile?.full_name ?? null}
         avatarUrl={profile?.avatar_url ?? null}
         profileHref="/dashboard/client"
+        dashboardHref="/dashboard/client"
       />
 
       <main className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
@@ -88,20 +89,22 @@ export default async function ClientDashboard() {
           <p className="mt-2 text-gray-500">Find a coach and start training today.</p>
         </div>
 
-        <div className="grid gap-6 sm:grid-cols-2">
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {PLACEHOLDER_CARDS.map((card) => (
-            <Card key={card.title} className="group transition-all hover:-translate-y-0.5 hover:shadow-md">
-              <div className={`mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl ${card.color}`}>
-                <card.icon className="h-6 w-6" />
-              </div>
-              <h2 className="text-lg font-semibold text-gray-900">{card.title}</h2>
-              <p className="mt-1 text-sm text-gray-500">{card.description}</p>
-              <div className="mt-4">
-                <Link href={card.href} className="text-sm font-medium text-blue-600 group-hover:underline">
-                  {card.cta}
-                </Link>
-              </div>
-            </Card>
+            <Link key={card.title} href={card.href}>
+              <Card className="group h-full transition-all hover:-translate-y-0.5 hover:shadow-md">
+                <div className={`mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl ${card.color}`}>
+                  <card.icon className="h-6 w-6" />
+                </div>
+                <h2 className="text-lg font-semibold text-gray-900">{card.title}</h2>
+                <p className="mt-1 text-sm text-gray-500">{card.description}</p>
+                <div className="mt-4">
+                  <span className="text-sm font-medium text-blue-600 group-hover:underline">
+                    {card.cta}
+                  </span>
+                </div>
+              </Card>
+            </Link>
           ))}
         </div>
         <ClientBookingCalendar bookings={bookings ?? []} />

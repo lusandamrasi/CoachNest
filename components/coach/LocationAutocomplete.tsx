@@ -27,7 +27,7 @@ const SA_BIAS_BOUNDS = {
 export default function LocationAutocomplete({
   value,
   onChange,
-  label = 'Location',
+  label,
   placeholder = 'Cape Town, ZA',
   id = 'location',
 }: LocationAutocompleteProps) {
@@ -73,9 +73,11 @@ export default function LocationAutocomplete({
 
   return (
     <div className="flex flex-col gap-1">
-      <label htmlFor={id} className="text-sm font-medium text-gray-700">
-        {label}
-      </label>
+      {label && (
+        <label htmlFor={id} className="text-sm font-medium text-gray-700">
+          {label}
+        </label>
+      )}
       <input
         ref={inputRef}
         id={id}

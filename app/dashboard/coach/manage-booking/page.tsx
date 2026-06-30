@@ -6,9 +6,11 @@ import { createClient } from '@/lib/supabase/client'
 import { Calendar, Clock, MapPin, Check, X, AlertCircle, User } from 'lucide-react'
 import Link from 'next/link'
 import { ChevronLeft } from 'lucide-react'
+import DashboardNav from '@/components/layout/DashboardNav'
 
 type Booking = {
     id: string
+    student_id: string
     date: string
     start_time: string
     end_time: string
@@ -91,7 +93,7 @@ function PendingCard({
                 </div>
 
                 <div className="flex-1 min-w-0 space-y-2">
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between gap-3">
                         <div>
                             <p className="font-semibold text-gray-900">{profile?.full_name ?? 'Client'}</p>
                             <div className="flex items-center gap-1 text-xs text-amber-600 font-medium mt-0.5">
@@ -99,6 +101,12 @@ function PendingCard({
                                 Awaiting your response
                             </div>
                         </div>
+                        <Link
+                            href={`/clients/${booking.student_id}`}
+                            className="text-xs font-medium text-blue-600 hover:underline whitespace-nowrap"
+                        >
+                            View profile →
+                        </Link>
                     </div>
 
                     <div className="flex flex-wrap gap-3 text-sm text-gray-500">
@@ -198,16 +206,26 @@ export default function CoachBookingsPage() {
     const [tab, setTab] = useState<Tab>('requests')
     const [acting, setActing] = useState<string | null>(null)
     const [error, setError] = useState('')
+    const [fullName, setFullName] = useState<string | null>(null)
+    const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
 
     useEffect(() => {
         async function load() {
             const { data: { user } } = await supabase.auth.getUser()
             if (!user) return router.push('/auth/login')
 
+            const { data: profile } = await supabase
+                .from('profiles')
+                .select('full_name, avatar_url')
+                .eq('id', user.id)
+                .single()
+            setFullName(profile?.full_name ?? null)
+            setAvatarUrl(profile?.avatar_url ?? null)
+
             const { data } = await supabase
                 .from('bookings')
                 .select(`
-          id, date, start_time, end_time, status,
+          id, student_id, date, start_time, end_time, status,
           profiles!bookings_student_id_fkey ( full_name, avatar_url )
         `)
                 .eq('coach_id', user.id)
@@ -254,7 +272,13 @@ export default function CoachBookingsPage() {
                 past
 
     return (
-        <>
+        <div className="min-h-screen bg-gray-50">
+            <DashboardNav
+                fullName={fullName}
+                avatarUrl={avatarUrl}
+                profileHref="/dashboard/coach/profile"
+                dashboardHref="/dashboard/coach"
+            />
             <div className="max-w-2xl mx-auto px-4 py-8 space-y-6">
                 {/* Header */}
                 <div>
@@ -337,6 +361,6 @@ export default function CoachBookingsPage() {
                     Back to dashboard
                 </Link>
             </div>
-        </>
+        </div>
     )
 }

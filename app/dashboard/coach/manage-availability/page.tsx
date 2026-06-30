@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 import Button from '@/components/ui/Button'
 import Link from 'next/link'
 import { ChevronLeft, Users } from 'lucide-react'
+import DashboardNav from '@/components/layout/DashboardNav'
 
 const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
 
@@ -25,18 +26,24 @@ type Slot = {
     start_time: string
     end_time: string
     num_clients: number
+    notes?: string | null
 }
+
+const NOTES_MAX = 200
 
 export default function AvailabilityPage() {
     const router = useRouter()
     const supabase = createClient()
 
     const [coachId, setCoachId] = useState<string | null>(null)
+    const [fullName, setFullName] = useState<string | null>(null)
+    const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
     const [savedSlots, setSavedSlots] = useState<Slot[]>([])
     const [selectedDay, setSelectedDay] = useState<number>(1)
     const [startTime, setStartTime] = useState('09:00')
     const [endTime, setEndTime] = useState('10:00')
     const [numClients, setNumClients] = useState<number>(1)
+    const [notes, setNotes] = useState<string>('')
     const [pendingSlots, setPendingSlots] = useState<Slot[]>([])
     const [saving, setSaving] = useState(false)
     const [error, setError] = useState('')
@@ -47,6 +54,14 @@ export default function AvailabilityPage() {
             const { data: { user } } = await supabase.auth.getUser()
             if (!user) return router.push('/auth/login')
             setCoachId(user.id)
+
+            const { data: profile } = await supabase
+                .from('profiles')
+                .select('full_name, avatar_url')
+                .eq('id', user.id)
+                .single()
+            setFullName(profile?.full_name ?? null)
+            setAvatarUrl(profile?.avatar_url ?? null)
 
             const { data } = await supabase
                 .from('availability')
@@ -86,7 +101,17 @@ export default function AvailabilityPage() {
             return
         }
 
-        setPendingSlots((prev) => [...prev, { day_of_week: selectedDay, start_time: startTime, end_time: endTime, num_clients: numClients }])
+        setPendingSlots((prev) => [
+            ...prev,
+            {
+                day_of_week: selectedDay,
+                start_time: startTime,
+                end_time: endTime,
+                num_clients: numClients,
+                notes: notes.trim() || null,
+            },
+        ])
+        setNotes('')
     }
 
     const removePendingSlot = (index: number) => {
@@ -119,6 +144,7 @@ export default function AvailabilityPage() {
             start_time: s.start_time,
             end_time: s.end_time,
             num_clients: s.num_clients ?? 1,
+            notes: s.notes ?? null,
         }))
 
         if (allSlots.length > 0) {
@@ -147,7 +173,14 @@ export default function AvailabilityPage() {
     const pendingGrouped = groupByDay(pendingSlots)
 
     return (
-        <div className="max-w-xl mx-auto px-4 py-10 space-y-8">
+        <div className="min-h-screen bg-gray-50">
+            <DashboardNav
+                fullName={fullName}
+                avatarUrl={avatarUrl}
+                profileHref="/dashboard/coach/profile"
+                dashboardHref="/dashboard/coach"
+            />
+            <div className="max-w-xl mx-auto px-4 py-10 space-y-8">
             <div>
                 <h1 className="text-2xl font-bold text-gray-900">Set Your Availability</h1>
                 <p className="text-sm text-gray-500 mt-1">Add time slots for when you're available to coach.</p>
@@ -211,6 +244,25 @@ export default function AvailabilityPage() {
                             </select>
                         </div>
                     </div>
+
+                    <div className="flex flex-col gap-1">
+                        <label className="text-sm text-gray-600 font-medium">
+                            Notes <span className="text-xs text-gray-400 font-normal">(optional, visible to clients)</span>
+                        </label>
+                        <textarea
+                            value={notes}
+                            onChange={(e) => setNotes(e.target.value.slice(0, NOTES_MAX))}
+                            rows={2}
+                            maxLength={NOTES_MAX}
+                            placeholder="e.g. Beach session — bring water and a towel."
+                            className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 placeholder-gray-400 focus:border-blue-400 focus:outline-none resize-none"
+                        />
+                        <div className="flex justify-end">
+                            <span className={`text-xs ${notes.length >= NOTES_MAX ? 'text-red-500' : 'text-gray-400'}`}>
+                                {notes.length} / {NOTES_MAX}
+                            </span>
+                        </div>
+                    </div>
                 </div>
 
                 {addError && <p className="text-xs text-red-500">{addError}</p>}
@@ -245,22 +297,29 @@ export default function AvailabilityPage() {
                                             )
 
                                             return (
-                                                <div key={i} className="flex items-center justify-between px-4 py-3">
-                                                    <div className="flex items-center gap-3 flex-wrap">
-                                                        <span className="text-sm text-gray-700">
-                                                            {formatTime(slot.start_time)} – {formatTime(slot.end_time)}
-                                                        </span>
-
-                                                        {/* Client capacity badge */}
-                                                        <span className="flex items-center gap-1 text-xs font-medium text-gray-500 bg-white border border-gray-200 px-2 py-0.5 rounded-full">
-                                                            <Users className="w-3 h-3 text-gray-400" />
-                                                            {slot.num_clients ?? 1} client{(slot.num_clients ?? 1) !== 1 ? 's' : ''}
-                                                        </span>
-
-                                                        {isPending && (
-                                                            <span className="text-xs bg-blue-100 text-blue-600 font-medium px-2 py-0.5 rounded-full">
-                                                                New
+                                                <div key={i} className="flex items-start justify-between gap-3 px-4 py-3">
+                                                    <div className="flex-1 min-w-0">
+                                                        <div className="flex items-center gap-3 flex-wrap">
+                                                            <span className="text-sm text-gray-700">
+                                                                {formatTime(slot.start_time)} – {formatTime(slot.end_time)}
                                                             </span>
+
+                                                            {/* Client capacity badge */}
+                                                            <span className="flex items-center gap-1 text-xs font-medium text-gray-500 bg-white border border-gray-200 px-2 py-0.5 rounded-full">
+                                                                <Users className="w-3 h-3 text-gray-400" />
+                                                                {slot.num_clients ?? 1} client{(slot.num_clients ?? 1) !== 1 ? 's' : ''}
+                                                            </span>
+
+                                                            {isPending && (
+                                                                <span className="text-xs bg-blue-100 text-blue-600 font-medium px-2 py-0.5 rounded-full">
+                                                                    New
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                        {slot.notes && (
+                                                            <p className="mt-1 text-xs text-gray-500 break-words whitespace-pre-line">
+                                                                {slot.notes}
+                                                            </p>
                                                         )}
                                                     </div>
 
@@ -279,7 +338,7 @@ export default function AvailabilityPage() {
                                                                 removeSavedSlot(idx)
                                                             }
                                                         }}
-                                                        className="text-gray-300 hover:text-red-400 text-lg leading-none transition-colors"
+                                                        className="text-gray-300 hover:text-red-400 text-lg leading-none transition-colors flex-shrink-0"
                                                     >
                                                         ×
                                                     </button>
@@ -305,6 +364,7 @@ export default function AvailabilityPage() {
                 <ChevronLeft className="w-4 h-4" />
                 Back to dashboard
             </Link>
+            </div>
         </div>
     )
 }

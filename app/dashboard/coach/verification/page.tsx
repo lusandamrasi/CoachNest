@@ -37,6 +37,7 @@ export default async function VerificationPage() {
         fullName={profile?.full_name ?? null}
         avatarUrl={profile?.avatar_url ?? null}
         profileHref="/dashboard/coach/profile"
+        dashboardHref="/dashboard/coach"
       />
 
       <main className="mx-auto max-w-3xl px-4 py-10 sm:px-6 lg:px-8">

@@ -30,14 +30,24 @@ export default function SignupForm() {
       password: formData.get('password'),
       role,
     }
+    const confirmPassword = String(formData.get('confirm_password') ?? '')
+
     const result = signupSchema.safeParse(raw)
 
+    const fieldErrors: Record<string, string> = {}
     if (!result.success) {
-      const fieldErrors: Record<string, string> = {}
       result.error.issues.forEach((err) => {
         if (err.path[0]) fieldErrors[err.path[0] as string] = err.message
       })
+    }
+    if (raw.password !== confirmPassword) {
+      fieldErrors.confirm_password = 'Passwords do not match'
+    }
+    if (Object.keys(fieldErrors).length > 0) {
       setErrors(fieldErrors)
+      return
+    }
+    if (!result.success) {
       return
     }
 
@@ -128,6 +138,15 @@ export default function SignupForm() {
         placeholder="••••••••"
         autoComplete="new-password"
         error={errors.password}
+      />
+
+      <PasswordInput
+        id="confirm_password"
+        name="confirm_password"
+        label="Confirm Password"
+        placeholder="••••••••"
+        autoComplete="new-password"
+        error={errors.confirm_password}
       />
 
       <Button type="submit" loading={loading} className="w-full" size="lg">

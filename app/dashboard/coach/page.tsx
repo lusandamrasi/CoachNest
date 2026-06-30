@@ -73,6 +73,7 @@ export default async function CoachDashboard() {
         fullName={profile?.full_name ?? null}
         avatarUrl={profile?.avatar_url ?? null}
         profileHref="/dashboard/coach/profile"
+        dashboardHref="/dashboard/coach"
       />
 
       <main className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8 space-y-10">

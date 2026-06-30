@@ -11,9 +11,15 @@ interface DashboardNavProps {
   fullName: string | null
   avatarUrl: string | null
   profileHref: string
+  dashboardHref: string
 }
 
-export default function DashboardNav({ fullName, avatarUrl, profileHref }: DashboardNavProps) {
+export default function DashboardNav({
+  fullName,
+  avatarUrl,
+  profileHref,
+  dashboardHref,
+}: DashboardNavProps) {
   const router = useRouter()
 
   async function handleSignOut() {
@@ -27,13 +33,33 @@ export default function DashboardNav({ fullName, avatarUrl, profileHref }: Dashb
 
   return (
     <header className="border-b border-gray-200 bg-white">
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-        <Link href="/" className="flex items-center gap-2">
+      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-6 px-4 sm:px-6 lg:px-8">
+        <Link
+          href={dashboardHref}
+          title="Go to Dashboard"
+          aria-label="Go to Dashboard"
+          className="flex items-center gap-2"
+        >
           <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-600 text-white text-sm font-bold">
             C
           </span>
           <span className="font-bold text-gray-900">CoachNest</span>
         </Link>
+
+        <nav className="hidden items-center gap-6 md:flex">
+          <Link
+            href="/coaches"
+            className="text-sm font-medium text-gray-600 transition-colors hover:text-blue-600"
+          >
+            Find Coaches
+          </Link>
+          <Link
+            href="/about"
+            className="text-sm font-medium text-gray-600 transition-colors hover:text-blue-600"
+          >
+            About
+          </Link>
+        </nav>
 
         <div className="flex items-center gap-3">
           <Link

@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import DashboardNav from '@/components/layout/DashboardNav'
+import Breadcrumb from '@/components/layout/Breadcrumb'
 import ProfileOverview from '@/components/coach/ProfileOverview'
 
 export const metadata = { title: 'Your Profile — CoachNest' }
@@ -30,9 +31,11 @@ export default async function CoachProfilePage() {
         fullName={profile?.full_name ?? null}
         avatarUrl={profile?.avatar_url ?? null}
         profileHref="/dashboard/coach/profile"
+        dashboardHref="/dashboard/coach"
       />
 
       <main className="mx-auto max-w-4xl px-4 py-10 sm:px-6 lg:px-8">
+        <Breadcrumb dashboardHref="/dashboard/coach" current="My Profile" />
         <div className="mb-8">
           <p className="text-sm font-medium text-blue-600">Coach</p>
           <h1 className="mt-1 text-3xl font-bold text-gray-900">Your profile</h1>

@@ -81,9 +81,8 @@ export default function Navbar() {
   }
 
   const navLinks = [
-    { href: '/', label: 'Home' },
     { href: '/coaches', label: 'Find Coaches' },
-    { href: '#about', label: 'About' },
+    { href: '/about', label: 'About' },
   ]
 
   const initial = (authUser?.fullName?.trim()?.[0] ?? '?').toUpperCase()
