@@ -57,15 +57,23 @@ export default async function CoachDashboard() {
 
   if (profile?.role !== 'coach') redirect('/dashboard/client')
 
-  const { data: bookings } = await supabase
-    .from('bookings')
-    .select(`
-      id, date, start_time, end_time, status,
-      profiles!bookings_student_id_fkey ( full_name, avatar_url )
-    `)
-    .eq('coach_id', user.id)
-    .eq('status', 'confirmed')
-    .order('date', { ascending: true })
+  const [{ data: bookings }, { data: coachRow }] = await Promise.all([
+    supabase
+      .from('bookings')
+      .select(`
+        id, date, start_time, end_time, status, notes,
+        profiles!bookings_student_id_fkey ( full_name, avatar_url )
+      `)
+      .eq('coach_id', user.id)
+      .eq('status', 'confirmed')
+      .order('date', { ascending: true }),
+    supabase
+      .from('coach_profiles')
+      .select('location')
+      .eq('id', user.id)
+      .single(),
+  ])
+  const coachLocation = coachRow?.location ?? null
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -112,7 +120,7 @@ export default async function CoachDashboard() {
         </div>
 
         {/* Booking Calendar */}
-        <BookingCalendar bookings={bookings ?? []} />
+        <BookingCalendar bookings={(bookings ?? []) as unknown as Parameters<typeof BookingCalendar>[0]['bookings']} coachLocation={coachLocation} />
 
       </main>
     </div>

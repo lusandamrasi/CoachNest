@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { Calendar, Clock, MapPin, Check, X, AlertCircle, User } from 'lucide-react'
+import { Calendar, Clock, Check, X, AlertCircle, User } from 'lucide-react'
 import Link from 'next/link'
 import { ChevronLeft } from 'lucide-react'
 import DashboardNav from '@/components/layout/DashboardNav'
@@ -15,6 +15,7 @@ type Booking = {
     start_time: string
     end_time: string
     status: 'pending' | 'confirmed' | 'cancelled'
+    notes: string | null
     profiles: {
         full_name: string | null
         avatar_url: string | null
@@ -119,6 +120,12 @@ function PendingCard({
                             {formatTime(booking.start_time)} – {formatTime(booking.end_time)}
                         </div>
                     </div>
+
+                    {booking.notes && (
+                        <div className="rounded-lg border border-amber-100 bg-amber-50 px-3 py-2 text-xs text-amber-900">
+                            <span className="font-semibold">Client note:</span> <span className="whitespace-pre-line">{booking.notes}</span>
+                        </div>
+                    )}
 
                     <div className="flex gap-2 pt-1">
                         <button
@@ -225,7 +232,7 @@ export default function CoachBookingsPage() {
             const { data } = await supabase
                 .from('bookings')
                 .select(`
-          id, student_id, date, start_time, end_time, status,
+          id, student_id, date, start_time, end_time, status, notes,
           profiles!bookings_student_id_fkey ( full_name, avatar_url )
         `)
                 .eq('coach_id', user.id)

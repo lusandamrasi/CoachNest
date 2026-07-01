@@ -1,9 +1,6 @@
-import Link from 'next/link'
-import Image from 'next/image'
-import { MapPin, Clock3, Banknote, Pencil, Mail, Phone } from 'lucide-react'
 import Card from '@/components/ui/Card'
-import Badge from '@/components/ui/Badge'
-import Button from '@/components/ui/Button'
+import { MapPin, Clock3, Banknote, Mail, Phone } from 'lucide-react'
+import ProfileHeaderCard from '@/components/ui/ProfileHeaderCard'
 
 interface ProfileOverviewProps {
   fullName: string | null
@@ -32,82 +29,35 @@ export default function ProfileOverview({
   email,
   phoneNumber,
 }: ProfileOverviewProps) {
-  const initial = (fullName?.trim()?.[0] ?? '?').toUpperCase()
+  const badges = [
+    ...(sport ? [{ label: sport, variant: 'blue' as const }] : []),
+    { label: isPublished ? 'Published' : 'Unpublished', variant: (isPublished ? 'green' : 'gray') as 'green' | 'gray' },
+  ]
+
+  const infoRows = [
+    ...(location ? [{ icon: <MapPin className="h-4 w-4 text-gray-400" />, text: location }] : []),
+    ...(yearsExperience != null
+      ? [{
+          icon: <Clock3 className="h-4 w-4 text-gray-400" />,
+          text: `${yearsExperience} ${yearsExperience === 1 ? 'year' : 'years'} experience`,
+        }]
+      : []),
+    ...(hourlyRate != null
+      ? [{ icon: <Banknote className="h-4 w-4 text-gray-400" />, text: `R${hourlyRate} / session` }]
+      : []),
+    ...(email ? [{ icon: <Mail className="h-4 w-4 text-gray-400" />, text: email }] : []),
+    ...(phoneNumber ? [{ icon: <Phone className="h-4 w-4 text-gray-400" />, text: phoneNumber }] : []),
+  ]
 
   return (
     <div className="space-y-6">
-      <Card padding="lg">
-        <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
-          <div className="flex items-start gap-5">
-            <div className="h-[120px] w-[120px] overflow-hidden rounded-full border border-gray-200 bg-blue-600">
-              {avatarUrl ? (
-                <Image
-                  src={avatarUrl}
-                  alt={fullName ?? 'Coach'}
-                  width={120}
-                  height={120}
-                  className="h-[120px] w-[120px] object-cover"
-                  unoptimized
-                />
-              ) : (
-                <span className="flex h-[120px] w-[120px] items-center justify-center text-4xl font-semibold text-white">
-                  {initial}
-                </span>
-              )}
-            </div>
-
-            <div>
-              <div className="flex flex-wrap items-center gap-3">
-                <h1 className="text-2xl font-bold text-gray-900">{fullName ?? 'Unnamed coach'}</h1>
-                {sport && <Badge variant="blue">{sport}</Badge>}
-                <Badge variant={isPublished ? 'green' : 'gray'}>
-                  {isPublished ? 'Published' : 'Unpublished'}
-                </Badge>
-              </div>
-
-              <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-sm text-gray-600">
-                {location && (
-                  <span className="inline-flex items-center gap-1.5">
-                    <MapPin className="h-4 w-4 text-gray-400" />
-                    {location}
-                  </span>
-                )}
-                {yearsExperience != null && (
-                  <span className="inline-flex items-center gap-1.5">
-                    <Clock3 className="h-4 w-4 text-gray-400" />
-                    {yearsExperience} {yearsExperience === 1 ? 'year' : 'years'} experience
-                  </span>
-                )}
-                {hourlyRate != null && (
-                  <span className="inline-flex items-center gap-1.5">
-                    <Banknote className="h-4 w-4 text-gray-400" />
-                    R{hourlyRate} / session
-                  </span>
-                )}
-                {email && (
-                  <span className="inline-flex items-center gap-1.5">
-                    <Mail className="h-4 w-4 text-gray-400" />
-                    {email}
-                  </span>
-                )}
-                {phoneNumber && (
-                  <span className="inline-flex items-center gap-1.5">
-                    <Phone className="h-4 w-4 text-gray-400" />
-                    {phoneNumber}
-                  </span>
-                )}
-              </div>
-            </div>
-          </div>
-
-          <Link href="/dashboard/coach/edit-profile" className="self-start">
-            <Button variant="outline" size="sm" className="gap-1.5">
-              <Pencil className="h-4 w-4" />
-              Edit Profile
-            </Button>
-          </Link>
-        </div>
-      </Card>
+      <ProfileHeaderCard
+        fullName={fullName ?? 'Unnamed coach'}
+        avatarUrl={avatarUrl}
+        badges={badges}
+        infoRows={infoRows}
+        editHref="/dashboard/coach/edit-profile"
+      />
 
       <Card padding="lg">
         <h2 className="text-lg font-semibold text-gray-900">About</h2>

@@ -33,7 +33,7 @@ export default async function EditClientProfilePage() {
       <DashboardNav
         fullName={profile?.full_name ?? null}
         avatarUrl={profile?.avatar_url ?? null}
-        profileHref="/dashboard/client"
+        profileHref="/dashboard/client/profile"
         dashboardHref="/dashboard/client"
       />
 

@@ -169,7 +169,6 @@ export default function AvailabilityPage() {
 
     const allSlots = [...savedSlots, ...pendingSlots]
     const grouped = groupByDay(allSlots)
-    const savedGrouped = groupByDay(savedSlots)
     const pendingGrouped = groupByDay(pendingSlots)
 
     return (
@@ -183,7 +182,7 @@ export default function AvailabilityPage() {
             <div className="max-w-xl mx-auto px-4 py-10 space-y-8">
             <div>
                 <h1 className="text-2xl font-bold text-gray-900">Set Your Availability</h1>
-                <p className="text-sm text-gray-500 mt-1">Add time slots for when you're available to coach.</p>
+                <p className="text-sm text-gray-500 mt-1">Add time slots for when you&apos;re available to coach.</p>
             </div>
             
             {/* Add slot form */}

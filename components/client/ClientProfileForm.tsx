@@ -63,7 +63,7 @@ function toggle(list: string[], value: string): string[] {
 
 type Toast = { kind: 'success' | 'error'; message: string } | null
 
-export default function ClientProfileForm({ userId, authEmail, initial }: ClientProfileFormProps) {
+export default function ClientProfileForm({ authEmail, initial }: ClientProfileFormProps) {
   const router = useRouter()
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -306,7 +306,7 @@ export default function ClientProfileForm({ userId, authEmail, initial }: Client
         <p className="mt-1 text-sm text-gray-500">A clear photo helps coaches put a face to your name.</p>
         <div className="mt-6 flex items-center gap-5">
           <div className="relative">
-            <div className="h-20 w-20 overflow-hidden rounded-2xl border border-blue-100 bg-blue-50 text-blue-600 text-2xl font-bold flex items-center justify-center">
+            <div className="h-20 w-20 overflow-hidden rounded-full border border-gray-200 bg-blue-600 text-white text-2xl font-bold flex items-center justify-center">
               {displayAvatar ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={displayAvatar} alt="Avatar" className="h-full w-full object-cover" />

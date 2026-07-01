@@ -48,6 +48,8 @@ export default async function CoachesListingPage({
   searchParams: Record<string, string | string[] | undefined>
 }) {
   const sport = readParam(searchParams.sport) || 'All'
+  const presetSport = readParam(searchParams.preset_sport)
+  const defaultSport = sport !== 'All' ? sport : (presetSport || 'All')
   const location = readParam(searchParams.location)
   const latParam = readParam(searchParams.lat)
   const lngParam = readParam(searchParams.lng)
@@ -125,7 +127,7 @@ export default async function CoachesListingPage({
           <aside>
             <FiltersSidebar
               defaults={{
-                sport,
+                sport: defaultSport,
                 location,
                 lat: hasCoords ? searchLat : null,
                 lng: hasCoords ? searchLng : null,

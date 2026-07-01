@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { ChevronLeft, ChevronRight, Clock, User, AlertCircle, Check } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Clock, AlertCircle, Check, MapPin, StickyNote } from 'lucide-react'
 import Link from 'next/link'
 
 type Booking = {
@@ -11,9 +11,11 @@ type Booking = {
     end_time: string
     status: string
     paid: boolean
+    notes: string | null
     coach_profiles: {
         sport: string
         hourly_rate: number | null
+        location: string | null
         profiles: {
             full_name: string | null
             avatar_url: string | null
@@ -288,6 +290,14 @@ export default function ClientBookingCalendar({ bookings }: { bookings: Booking[
                                                     {formatTime(booking.start_time)} – {formatTime(booking.end_time)}
                                                 </div>
 
+                                                {/* Location */}
+                                                {coach?.location && (
+                                                    <div className="flex items-center gap-1.5 text-sm text-gray-600">
+                                                        <MapPin className="w-3.5 h-3.5 text-gray-400" />
+                                                        {coach.location}
+                                                    </div>
+                                                )}
+
                                                 {/* Duration + rate */}
                                                 <div className="flex items-center justify-between text-xs text-gray-400">
                                                     <span>
@@ -302,6 +312,14 @@ export default function ClientBookingCalendar({ bookings }: { bookings: Booking[
                                                         <span className="font-medium text-gray-500">${coach.hourly_rate}/hr</span>
                                                     )}
                                                 </div>
+
+                                                {/* Note */}
+                                                {booking.notes && (
+                                                    <div className="flex items-start gap-1.5 rounded-lg border border-amber-100 bg-amber-50 px-2.5 py-2 text-xs text-amber-900">
+                                                        <StickyNote className="w-3.5 h-3.5 text-amber-500 mt-0.5 shrink-0" />
+                                                        <span className="whitespace-pre-line">{booking.notes}</span>
+                                                    </div>
+                                                )}
 
                                                 {/* Pay button */}
                                                 {!booking.paid && !isPast && (

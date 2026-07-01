@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { ChevronLeft, ChevronRight, Search, SlidersHorizontal, X, Users } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Search, SlidersHorizontal, X } from 'lucide-react'
 import CoachCard, { type Coach } from '@/components/booking/CoachCard'
 import Navbar from '@/components/layout/Navbar'
 
@@ -160,7 +160,7 @@ export default function BrowseByDatePage() {
             .select('coach_id')
             .eq('day_of_week', dayOfWeek)
 
-        const coachIds = [...new Set(availData?.map((a) => a.coach_id) ?? [])]
+        const coachIds = Array.from(new Set(availData?.map((a) => a.coach_id) ?? []))
 
         if (coachIds.length === 0) {
             setCoaches([])

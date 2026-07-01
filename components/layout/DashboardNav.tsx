@@ -23,6 +23,7 @@ export default function DashboardNav({
   const router = useRouter()
 
   async function handleSignOut() {
+    if (!window.confirm('Are you sure you want to sign out?')) return
     const supabase = createClient()
     await supabase.auth.signOut()
     router.push('/')
@@ -47,6 +48,12 @@ export default function DashboardNav({
         </Link>
 
         <nav className="hidden items-center gap-6 md:flex">
+          <Link
+            href={dashboardHref}
+            className="text-sm font-medium text-gray-600 transition-colors hover:text-blue-600"
+          >
+            Home
+          </Link>
           <Link
             href="/coaches"
             className="text-sm font-medium text-gray-600 transition-colors hover:text-blue-600"

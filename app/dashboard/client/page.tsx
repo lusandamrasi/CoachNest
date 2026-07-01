@@ -61,9 +61,9 @@ export default async function ClientDashboard() {
   const { data: bookings } = await supabase
     .from('bookings')
     .select(`
-    id, date, start_time, end_time, status, paid,
+    id, date, start_time, end_time, status, paid, notes,
     coach_profiles (
-      sport, hourly_rate,
+      sport, hourly_rate, location,
       profiles ( full_name, avatar_url )
     )
   `)
@@ -76,7 +76,7 @@ export default async function ClientDashboard() {
       <DashboardNav
         fullName={profile?.full_name ?? null}
         avatarUrl={profile?.avatar_url ?? null}
-        profileHref="/dashboard/client"
+        profileHref="/dashboard/client/profile"
         dashboardHref="/dashboard/client"
       />
 
@@ -107,7 +107,7 @@ export default async function ClientDashboard() {
             </Link>
           ))}
         </div>
-        <ClientBookingCalendar bookings={bookings ?? []} />
+        <ClientBookingCalendar bookings={(bookings ?? []) as unknown as Parameters<typeof ClientBookingCalendar>[0]['bookings']} />
       </main>
       
 

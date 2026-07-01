@@ -55,7 +55,7 @@ export default function CoachBookingPage() {
 
     const [coach, setCoach] = useState<CoachProfile | null>(null)
     const [availability, setAvailability] = useState<Record<number, AvailabilitySlot[]>>({})
-    const [user, setUser] = useState<any>(null)
+    const [user, setUser] = useState<{ id: string } | null>(null)
     const [loading, setLoading] = useState(true)
 
     const today = new Date()
@@ -69,6 +69,7 @@ export default function CoachBookingPage() {
     const [booking, setBooking] = useState(false)
     const [booked, setBooked] = useState(false)
     const [bookingError, setBookingError] = useState('')
+    const [bookingNote, setBookingNote] = useState('')
 
     useEffect(() => {
         async function load() {
@@ -144,6 +145,7 @@ export default function CoachBookingPage() {
             end_time: selectedSlot.end_time,
             status: 'pending',
             paid: false,
+            notes: bookingNote.trim() || null,
         })
 
         if (error) {
@@ -178,9 +180,9 @@ export default function CoachBookingPage() {
     const profile = coach.profiles
     const daysInMonth = getDaysInMonth(viewYear, viewMonth)
     const firstDay = getFirstDayOfMonth(viewYear, viewMonth)
-    const calendarCells = Array.from({ length: firstDay }, () => null).concat(
-        Array.from({ length: daysInMonth }, (_, i) => new Date(viewYear, viewMonth, i + 1))
-    )
+    const emptyCells: (Date | null)[] = Array.from({ length: firstDay }, () => null)
+    const dayCells: (Date | null)[] = Array.from({ length: daysInMonth }, (_, i) => new Date(viewYear, viewMonth, i + 1))
+    const calendarCells: (Date | null)[] = [...emptyCells, ...dayCells]
     const slotsForSelectedDay = selectedDate ? (availability[selectedDate.getDay()] ?? []) : []
 
     // Prevent navigating to months before today
@@ -239,7 +241,7 @@ export default function CoachBookingPage() {
                 <h2 className="text-base font-semibold text-gray-900">Book a Session</h2>
 
                 {availableDays.size === 0 ? (
-                    <p className="text-sm text-gray-400">This coach hasn't set their availability yet.</p>
+                    <p className="text-sm text-gray-400">This coach hasn&apos;t set their availability yet.</p>
                 ) : (
                     <>
                         {/* Calendar */}
@@ -357,12 +359,34 @@ export default function CoachBookingPage() {
                                     {coach.hourly_rate != null && <span className="ml-2 text-blue-500">· R{coach.hourly_rate}</span>}
                                 </div>
 
+                                {!booked && (
+                                    <div className="flex flex-col gap-1">
+                                        <label htmlFor="booking_note" className="text-sm font-medium text-gray-700">
+                                            Note <span className="text-xs text-gray-400 font-normal">(optional, shared with the coach)</span>
+                                        </label>
+                                        <textarea
+                                            id="booking_note"
+                                            value={bookingNote}
+                                            onChange={(e) => setBookingNote(e.target.value.slice(0, 300))}
+                                            rows={3}
+                                            maxLength={300}
+                                            placeholder="Anything the coach should know before the session?"
+                                            className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-800 placeholder-gray-400 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 resize-none"
+                                        />
+                                        <div className="flex justify-end">
+                                            <span className={`text-xs ${bookingNote.length >= 300 ? 'text-red-500' : 'text-gray-400'}`}>
+                                                {bookingNote.length} / 300
+                                            </span>
+                                        </div>
+                                    </div>
+                                )}
+
                                 {bookingError && <p className="text-sm text-red-500">{bookingError}</p>}
 
                                 {booked ? (
                                     <div className="flex items-center gap-2 text-green-600 text-sm font-medium bg-green-50 border border-green-100 rounded-xl px-4 py-3">
                                         <Check className="w-4 h-4 shrink-0" />
-                                        Booking confirmed! The coach will be in touch soon.
+                                        Booking request sent! The coach will review it shortly.
                                     </div>
                                 ) : (
                                     <button
@@ -370,7 +394,7 @@ export default function CoachBookingPage() {
                                         disabled={booking}
                                         className="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm font-semibold transition-colors"
                                     >
-                                        {booking ? 'Confirming…' : user ? 'Confirm Booking' : 'Sign in to Book'}
+                                        {booking ? 'Sending…' : user ? 'Confirm Booking Request' : 'Sign in to Book'}
                                     </button>
                                 )}
                             </div>

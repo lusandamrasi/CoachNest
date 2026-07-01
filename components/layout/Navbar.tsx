@@ -73,6 +73,7 @@ export default function Navbar() {
   }, [])
 
   async function handleSignOut() {
+    if (!window.confirm('Are you sure you want to sign out?')) return
     const supabase = createClient()
     await supabase.auth.signOut()
     setMobileOpen(false)
@@ -80,7 +81,9 @@ export default function Navbar() {
     router.refresh()
   }
 
+  const homeHref = authUser ? authUser.dashboardHref : '/auth/login'
   const navLinks = [
+    { href: homeHref, label: 'Home' },
     { href: '/coaches', label: 'Find Coaches' },
     { href: '/about', label: 'About' },
   ]
@@ -119,12 +122,6 @@ export default function Navbar() {
         <div className="hidden md:flex items-center gap-3">
           {!authReady ? null : authUser ? (
             <>
-              <Link
-                href={authUser.dashboardHref} 
-                className="text-sm font-medium text-gray-600 transition-colors hover:text-blue-600"
-                >
-                My Dashboard:
-              </Link>
               <Link
                 href={authUser.dashboardHref}
                 aria-label="Go to dashboard"
