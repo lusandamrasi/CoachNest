@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { LogOut } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import Button from '@/components/ui/Button'
+import Logo from '@/components/layout/Logo'
 
 interface DashboardNavProps {
   fullName: string | null
@@ -39,12 +40,9 @@ export default function DashboardNav({
           href={dashboardHref}
           title="Go to Dashboard"
           aria-label="Go to Dashboard"
-          className="flex items-center gap-2"
+          className="flex items-center"
         >
-          <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-600 text-white text-sm font-bold">
-            C
-          </span>
-          <span className="font-bold text-gray-900">CoachNest</span>
+          <Logo size="sm" />
         </Link>
 
         <nav className="hidden items-center gap-6 md:flex">
@@ -65,6 +63,12 @@ export default function DashboardNav({
             className="text-sm font-medium text-gray-600 transition-colors hover:text-blue-600"
           >
             About
+          </Link>
+          <Link
+            href="/contact"
+            className="text-sm font-medium text-gray-600 transition-colors hover:text-blue-600"
+          >
+            Contact Us
           </Link>
         </nav>
 

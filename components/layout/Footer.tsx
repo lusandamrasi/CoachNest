@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Logo from '@/components/layout/Logo'
 
 export default function Footer() {
   return (
@@ -7,9 +8,8 @@ export default function Footer() {
         <div className="flex flex-col items-center gap-6 md:flex-row md:justify-between">
           {/* Brand */}
           <div className="flex flex-col items-center gap-2 md:items-start">
-            <Link href="/" className="flex items-center gap-2">
-              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-600 text-white text-sm font-bold">C</span>
-              <span className="text-lg font-bold text-gray-900">CoachNest</span>
+            <Link href="/" className="flex items-center">
+              <Logo size="sm" />
             </Link>
             <p className="text-sm text-gray-500">Connect with certified coaches worldwide.</p>
           </div>

@@ -1,6 +1,7 @@
 import { Suspense } from 'react'
 import Link from 'next/link'
 import LoginForm from '@/components/auth/LoginForm'
+import Logo from '@/components/layout/Logo'
 
 export const metadata = { title: 'Sign In — CoachNest' }
 
@@ -9,9 +10,8 @@ export default function LoginPage() {
     <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
       <div className="w-full max-w-md">
         {/* Logo */}
-        <Link href="/" className="mb-8 flex items-center justify-center gap-2">
-          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600 text-white text-lg font-bold">C</span>
-          <span className="text-xl font-bold text-gray-900">CoachNest</span>
+        <Link href="/" className="mb-8 flex items-center justify-center">
+          <Logo size="md" />
         </Link>
 
         <div className="rounded-2xl border border-gray-200 bg-white p-8 shadow-sm">

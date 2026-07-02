@@ -6,6 +6,7 @@ import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { Menu, X, LogOut } from 'lucide-react'
 import Button from '@/components/ui/Button'
+import Logo from '@/components/layout/Logo'
 import { createClient } from '@/lib/supabase/client'
 
 type AuthUser = {
@@ -86,6 +87,7 @@ export default function Navbar() {
     { href: homeHref, label: 'Home' },
     { href: '/coaches', label: 'Find Coaches' },
     { href: '/about', label: 'About' },
+    { href: '/contact', label: 'Contact Us' },
   ]
 
   const initial = (authUser?.fullName?.trim()?.[0] ?? '?').toUpperCase()
@@ -98,11 +100,8 @@ export default function Navbar() {
     >
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-2">
-          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600 text-white text-lg font-bold select-none">
-            C
-          </span>
-          <span className="text-xl font-bold text-gray-900">CoachNest</span>
+        <Link href="/" className="flex items-center">
+          <Logo size="md" />
         </Link>
 
         {/* Desktop nav */}
