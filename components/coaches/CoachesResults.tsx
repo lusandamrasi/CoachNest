@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
-import { Search, X, Star, MapPin, CheckCircle2 } from 'lucide-react'
+import { Search, X, Star, MapPin, CheckCircle2, Sparkles } from 'lucide-react'
 import Button from '@/components/ui/Button'
 
 export type CoachCardData = {
@@ -12,8 +12,18 @@ export type CoachCardData = {
   location: string | null
   years_experience: number | null
   verification_status: string | null
+  created_at: string | null
   profiles: { full_name: string | null; avatar_url: string | null } | null
   reviews: { rating: number | null }[] | null
+}
+
+const NEW_WINDOW_MS = 14 * 24 * 60 * 60 * 1000
+
+function isNewCoach(createdAt: string | null): boolean {
+  if (!createdAt) return false
+  const created = new Date(createdAt).getTime()
+  if (Number.isNaN(created)) return false
+  return Date.now() - created <= NEW_WINDOW_MS
 }
 
 function initials(name: string | null) {
@@ -116,6 +126,7 @@ export default function CoachesResults({ coaches, initialQuery }: CoachesResults
             }
 
             const name = coach.profiles?.full_name ?? 'Coach'
+            const showNewBadge = isNewCoach(coach.created_at)
 
             return (
               <div
@@ -141,6 +152,12 @@ export default function CoachesResults({ coaches, initialQuery }: CoachesResults
                   <div className="flex-1 min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
                       <h3 className="text-base font-semibold text-gray-900 truncate">{name}</h3>
+                      {showNewBadge && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-orange-100 px-2 py-0.5 text-[11px] font-medium text-orange-600">
+                          <Sparkles className="h-3 w-3" />
+                          New
+                        </span>
+                      )}
                       {verificationBadge && (
                         <span
                           className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium ${verificationBadge.classes}`}

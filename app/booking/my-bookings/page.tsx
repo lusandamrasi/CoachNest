@@ -13,6 +13,7 @@ type Booking = {
     start_time: string
     end_time: string
     status: 'pending' | 'confirmed' | 'cancelled'
+    payment_status?: 'unpaid' | 'pending' | 'paid' | null
     coach_profiles: {
         sport: string
         hourly_rate: number | null
@@ -107,9 +108,23 @@ function BookingCard({ booking, onPay }: { booking: Booking; onPay: (booking: Bo
                         </div>
 
                         {/* Status badge */}
-                        <div className={`flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full border ${status.className}`}>
-                            <StatusIcon className={`w-3 h-3 ${status.iconClass}`} />
-                            {status.label}
+                        <div className="flex flex-wrap items-center justify-end gap-1.5">
+                            <div className={`flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full border ${status.className}`}>
+                                <StatusIcon className={`w-3 h-3 ${status.iconClass}`} />
+                                {status.label}
+                            </div>
+                            {booking.status === 'confirmed' && booking.payment_status === 'unpaid' && (
+                                <span className="flex items-center gap-1 text-xs font-medium text-amber-600 bg-amber-50 border border-amber-100 px-2 py-0.5 rounded-full">
+                                    <AlertCircle className="w-3 h-3 text-amber-400" />
+                                    Unpaid
+                                </span>
+                            )}
+                            {booking.status === 'confirmed' && booking.payment_status === 'paid' && (
+                                <span className="flex items-center gap-1 text-xs font-medium text-green-600 bg-green-50 border border-green-100 px-2 py-0.5 rounded-full">
+                                    <Check className="w-3 h-3 text-green-400" />
+                                    Paid
+                                </span>
+                            )}
                         </div>
                     </div>
 
@@ -173,7 +188,7 @@ export default function MyBookingsPage() {
             const { data } = await supabase
                 .from('bookings')
                 .select(`
-          id, date, start_time, end_time, status,
+          id, date, start_time, end_time, status, payment_status,
           coach_profiles (
             sport, hourly_rate, location,
             profiles ( full_name, avatar_url )

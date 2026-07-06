@@ -72,6 +72,12 @@ export default function SignupForm() {
     }
 
     if (data.user) {
+      if (result.data.role === 'coach') {
+        await supabase
+          .from('coach_profiles')
+          .update({ is_published: true })
+          .eq('id', data.user.id)
+      }
       router.push(result.data.role === 'coach' ? '/dashboard/coach' : '/dashboard/client')
       router.refresh()
     }

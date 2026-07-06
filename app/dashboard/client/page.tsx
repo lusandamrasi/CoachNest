@@ -6,6 +6,7 @@ import Card from '@/components/ui/Card'
 import Link from 'next/link'
 import ClientBookingCalendar from '@/components/client/ClientBookingCalendar'
 import Greeting from '@/components/ui/Greeting'
+import CartButton from '@/components/client/CartButton'
 
 export const metadata = { title: 'Client Dashboard — CoachNest' }
 
@@ -81,12 +82,15 @@ export default async function ClientDashboard() {
       />
 
       <main className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-        <div className="mb-10">
-          <p className="text-sm font-medium text-blue-600">Client Dashboard</p>
-          <h1 className="mt-1 text-3xl font-bold text-gray-900">
-            <Greeting fullName={profile?.full_name ?? null} fallback="there" />
-          </h1>
-          <p className="mt-2 text-gray-500">Find a coach and start training today.</p>
+        <div className="mb-10 flex items-start justify-between gap-4">
+          <div>
+            <p className="text-sm font-medium text-blue-600">Client Dashboard</p>
+            <h1 className="mt-1 text-3xl font-bold text-gray-900">
+              <Greeting fullName={profile?.full_name ?? null} fallback="there" />
+            </h1>
+            <p className="mt-2 text-gray-500">Find a coach and start training today.</p>
+          </div>
+          <CartButton />
         </div>
 
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
