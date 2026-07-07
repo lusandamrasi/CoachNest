@@ -51,7 +51,7 @@ export default function LoginForm() {
       .eq('id', data.user.id)
       .single()
 
-    const fallback = profile?.role === 'coach' ? '/dashboard/coach' : '/dashboard/client'
+    const fallback = profile?.role === 'admin' ? '/dashboard/admin' : profile?.role === 'coach' ? '/dashboard/coach' : '/dashboard/client'
     const target = redirectTo && redirectTo.startsWith('/') ? redirectTo : fallback
     router.push(target)
     router.refresh()
