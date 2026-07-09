@@ -434,7 +434,7 @@ function ReviewCard({ booking }: { booking: Booking }) {
     )
 }
 
-type Tab = 'requests' | 'upcoming' | 'past' | 'review'
+type Tab = 'requests' | 'upcoming' | 'review' | 'past'
 
 export default function CoachBookingsPage() {
     const router = useRouter()
@@ -496,13 +496,16 @@ export default function CoachBookingsPage() {
             const { data } = await supabase
                 .from('bookings')
                 .select(`
-          id, student_id, date, start_time, end_time, status, notes,
-          profiles!bookings_student_id_fkey ( full_name, avatar_url )
-        `)
+                    id, student_id, date, start_time, end_time, status,
+                    profiles!bookings_student_id_fkey ( full_name, avatar_url )
+                `)
                 .eq('coach_id', user.id)
                 .order('date', { ascending: true })
 
-            if (data) setBookings(data as unknown as Booking[])
+            if (data) {
+                console.log('all statuses:', data.map((b) => b.status))
+                setBookings(data as unknown as Booking[])
+            }
             setLoading(false)
         }
         load()
@@ -528,22 +531,30 @@ export default function CoachBookingsPage() {
     }
 
     const pending = bookings.filter((b) => b.status === 'pending')
-    const upcoming = bookings.filter((b) => b.status === 'confirmed')
-    const past = bookings.filter((b) => (b.status === 'completed-unpaid' || b.status === 'completed') && !isUpcoming(b.date))
     const review_bookings = bookings.filter((b) => b.status === 'review')
+    const upcoming = bookings.filter((b) =>
+        b.status === 'confirmed' && isUpcoming(b.date)
+    )
+    const past = bookings.filter((b) =>
+        b.status === 'completed-unpaid' ||
+        b.status === 'completed' ||
+        (b.status === 'confirmed' && !isUpcoming(b.date))
+    )
 
 
     const TABS: { key: Tab; label: string; count?: number }[] = [
         { key: 'requests', label: 'Requests', count: pending.length },
         { key: 'upcoming', label: 'Upcoming', count: upcoming.length },
-        { key: 'past', label: 'Past' },
         { key: 'review' as Tab, label: 'To Review', count: review_bookings.length },
+        { key: 'past', label: 'Past' },
+        
     ]
 
     const activeList =
         tab === 'requests' ? pending :
-            tab === 'upcoming' ? upcoming :
-                past
+            tab === 'review' ? review_bookings :
+                tab === 'upcoming' ? upcoming :
+                    past
 
     return (
         <div className="min-h-screen bg-gray-50">
@@ -625,20 +636,24 @@ export default function CoachBookingsPage() {
                                 <BookingCard key={b.id} booking={b} />
                             ))
                         }
-                        {tab === 'review' && (
-                            <div className="space-y-4">
-                                {review_bookings.length === 0 ? (
-                                <div className="text-center py-20 space-y-1">
-                                    <p className="text-gray-500 font-medium">No sessions to review</p>
-                                    <p className="text-sm text-gray-400">Sessions ready for review will appear here.</p>
-                                </div>
-                                ) : (
-                                review_bookings.map((b) => (
-                                    <ReviewCard key={b.id} booking={b} />
+                        {tab === 'review'
+                            ? activeList.map((b) => (
+                                <ReviewCard key={b.id} booking={b} />
                                 ))
-                                )}
-                            </div>
-                        )}
+                            : tab === 'requests'
+                                ? activeList.map((b) => (
+                                    <PendingCard
+                                    key={b.id}
+                                    booking={b}
+                                    onAccept={(id) => updateStatus(id, 'confirmed')}
+                                    onReject={(id) => updateStatus(id, 'cancelled')}
+                                    acting={acting}
+                                    />
+                                ))
+                                : activeList.map((b) => (
+                                    <BookingCard key={b.id} booking={b} />
+                                ))
+                        }
                     </div>
                 )}
                 <Link
