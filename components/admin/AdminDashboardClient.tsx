@@ -7,6 +7,7 @@ import {
     Clock, AlertCircle, Shield, User, Dumbbell, CalendarCheck,
 } from 'lucide-react'
 import SessionPopup from './SessionPopUp'
+import UserPopup from './UserPopUp'
 
 type Profile = {
     id: string
@@ -211,14 +212,17 @@ function ReportCard({ report, onStatusChange }: {
     )
 }
 
-function UserRow({ user }: { user: Profile }) {
+function UserRow({ user, onClick }: { user: Profile; onClick: () => void }) {
     const role = ROLE_CONFIG[user.role ?? ''] ?? {
         label: user.role ?? 'Unknown',
         className: 'bg-gray-100 text-gray-500',
     }
 
     return (
-        <div className="flex items-center justify-between py-3 px-4 hover:bg-gray-50 rounded-xl transition-colors">
+        <div
+            onClick={onClick}
+            className="flex items-center justify-between py-3 px-4 hover:bg-gray-50 rounded-xl transition-colors cursor-pointer"
+        >            
             <div className="flex items-center gap-3">
                 <Avatar url={user.avatar_url} name={user.full_name} size="md" />
                 <div>
@@ -244,7 +248,7 @@ export default function AdminDashboardClient({
 }) {
     const supabase = createClient()
 
-    const [tab, setTab] = useState<Tab>('reports')
+    const [tab, setTab] = useState<Tab>('users')
     const [reports, setReports] = useState<Report[]>(initialReports)
     const [reportFilter, setReportFilter] = useState<ReportFilter>('open')
     const [userFilter, setUserFilter] = useState<UserFilter>('all')
@@ -252,6 +256,8 @@ export default function AdminDashboardClient({
     const [payingId, setPayingId] = useState<string | null>(null)
     const [paidIds, setPaidIds] = useState<Set<string>>(new Set())
     const [activeSession, setActiveSession] = useState<Session | null>(null)
+    const [activeUser, setActiveUser] = useState<Profile | null>(null)
+
 
     const handleStatusChange = async (id: string, status: Report['status']) => {
         const { error } = await supabase
@@ -326,8 +332,8 @@ export default function AdminDashboardClient({
                 {/* Tabs */}
                 <div className="flex gap-2 flex-wrap">
                     {([
-                        { key: 'reports', label: 'Reports', icon: Flag, count: openCount },
                         { key: 'users', label: 'Users', icon: Users, count: initialUsers.length },
+                        { key: 'reports', label: 'Reports', icon: Flag, count: openCount },
                         { key: 'sessions', label: 'Sessions', icon: CalendarCheck, count: initialSessions.length },
                     ] as { key: Tab; label: string; icon: any; count: number }[]).map(({ key, label, icon: Icon, count }) => (
                         <button
@@ -420,7 +426,7 @@ export default function AdminDashboardClient({
                                 </div>
                             ) : (
                                 filteredUsers.map((user) => (
-                                    <UserRow key={user.id} user={user} />
+                                    <UserRow key={user.id} user={user} onClick={() => setActiveUser(user)} />
                                 ))
                             )}
                         </div>
@@ -509,8 +515,8 @@ export default function AdminDashboardClient({
                                                                     {session.profiles?.full_name ?? 'Client'}
                                                                 </p>
                                                                 <p className="text-xs text-gray-400">
-                                                                    {new Date(session.date + 'T00:00:00').toLocaleDateString('en-US', {
-                                                                        month: 'short', day: 'numeric',
+                                                                    {new Date(session.date + 'T00:00:00').toLocaleDateString('en-ZA', {
+                                                                        month: 'short', day: 'numeric', timeZone: 'Africa/Johannesburg',
                                                                     })} · {formatTime(session.start_time)} – {formatTime(session.end_time)} · {mins} min
                                                                 </p>
                                                             </div>
@@ -518,7 +524,7 @@ export default function AdminDashboardClient({
 
                                                         <div className="flex items-center gap-3 shrink-0">
                                                             <span className="text-sm font-semibold text-gray-700">
-                                                                ${amount.toFixed(2)}
+                                                                R{amount.toFixed(2)}
                                                             </span>
                                                             {isPaid ? (
                                                                 <span className="flex items-center gap-1 text-xs font-medium text-green-600 bg-green-50 border border-green-100 px-3 py-1.5 rounded-xl">
@@ -546,6 +552,7 @@ export default function AdminDashboardClient({
                 )}
             </div>
             <SessionPopup session={activeSession} onClose={() => setActiveSession(null)} />
+            <UserPopup user={activeUser} onClose={() => setActiveUser(null)} />
 
         </div>
     )
