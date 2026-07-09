@@ -17,20 +17,38 @@ export default async function AdminDashboardPage() {
 
     if (profile?.role !== 'admin') redirect('/dashboard/client')
 
-    const [{ data: users }, { data: reports }] = await Promise.all([
-        supabase
-            .from('profiles')
-            .select('id, full_name, avatar_url, role, created_at')
-            .order('created_at', { ascending: false }),
-        supabase
-            .from('reports')
-            .select(`
-        id, reason, details, status, created_at, reported_type,
-        reporter:reporter_id ( id, full_name, avatar_url ),
-        reported:reported_id ( id, full_name, avatar_url )
-      `)
-            .order('created_at', { ascending: false }),
-    ])
+    const [{ data: users }, { data: reports }, { data: sessions }] = await Promise.all([
+  supabase
+    .from('profiles')
+    .select('id, full_name, avatar_url, role, created_at')
+    .order('created_at', { ascending: false }),
+  supabase
+    .from('reports')
+    .select(`
+      id, reason, details, status, created_at, reported_type,
+      reporter:reporter_id ( id, full_name, avatar_url ),
+      reported:reported_id ( id, full_name, avatar_url )
+    `)
+    .order('created_at', { ascending: false }),
+  supabase
+    .from('bookings')
+    .select(`
+      id, date, start_time, end_time, status,
+      coach_profiles (
+        hourly_rate,
+        profiles ( full_name, avatar_url )
+      ),
+      profiles!bookings_student_id_fkey ( full_name, avatar_url )
+    `)
+    .eq('status', 'confirmed')
+    .order('date', { ascending: false }),
+])
 
-    return <AdminDashboardClient users={users ?? []} reports={reports ?? []} />
+return (
+  <AdminDashboardClient
+    users={users ?? []}
+    reports={reports ?? []}
+    sessions={sessions ?? []}
+  />
+)
 }

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { Calendar, Clock, Check, X, AlertCircle, User } from 'lucide-react'
+import { Calendar, Clock, Check, X, AlertCircle, User, Star } from 'lucide-react'
 import Link from 'next/link'
 import { ChevronLeft } from 'lucide-react'
 import DashboardNav from '@/components/layout/DashboardNav'
@@ -14,7 +14,7 @@ type Booking = {
     date: string
     start_time: string
     end_time: string
-    status: 'pending' | 'confirmed' | 'cancelled'
+    status: 'pending' | 'confirmed' | 'cancelled' | 'review' | 'completed-unpaid' | 'completed'
     notes: string | null
     profiles: {
         full_name: string | null
@@ -65,6 +65,24 @@ const STATUS_CONFIG = {
         icon: X,
         className: 'bg-red-50 text-red-600 border-red-100',
         iconClass: 'text-red-400',
+    },
+    review: {
+        label: 'Awaiting Review',
+        icon: Star,
+        className: 'bg-blue-50 text-blue-600 border-blue-100',
+        iconClass: 'text-blue-400',
+    },
+    'completed-unpaid': {
+        label: 'Completed — Unpaid',
+        icon: Clock,
+        className: 'bg-orange-50 text-orange-600 border-orange-100',
+        iconClass: 'text-orange-400',
+    },
+    completed: {
+        label: 'Completed',
+        icon: Check,
+        className: 'bg-gray-100 text-gray-500 border-gray-200',
+        iconClass: 'text-gray-400',
     },
 }
 
@@ -202,7 +220,221 @@ function BookingCard({ booking }: { booking: Booking }) {
     )
 }
 
-type Tab = 'requests' | 'upcoming' | 'past'
+function ReviewCard({ booking }: { booking: Booking }) {
+    const supabase = createClient()
+    const [expanded, setExpanded] = useState(false)
+    const [rating, setRating] = useState(0)
+    const [hovered, setHovered] = useState(0)
+    const [review, setReview] = useState('')
+    const [attended, setAttended] = useState<boolean | null>(null)
+    const [saving, setSaving] = useState(false)
+    const [error, setError] = useState('')
+    const profile = booking.profiles
+
+    const handleSubmit = async () => {
+        if (rating === 0) {
+            setError('Please give a star rating.')
+            return
+        }
+        if (attended === null) {
+            setError('Please confirm whether the student attended.')
+            return
+        }
+
+        setSaving(true)
+        setError('')
+
+        // Save review to booking and update status
+        const { error: bookingError } = await supabase
+            .from('bookings')
+            .update({
+                status: 'completed-unpaid',
+                coaches_report: review || null,
+                rating: rating,
+                student_attended: attended,
+            })
+            .eq('id', booking.id)
+
+        if (bookingError) {
+            setError('Failed to save review. Please try again.')
+            setSaving(false)
+            return
+        }
+
+        const { data: allRatings } = await supabase
+            .from('bookings')
+            .select('rating')
+            .eq('student_id', booking.student_id)
+            .not('rating', 'is', null)
+
+        if (allRatings && allRatings.length > 0) {
+            const average = Math.round(
+                allRatings.reduce((sum, b) => sum + (b.rating ?? 0), 0) / allRatings.length
+            )
+
+            await supabase
+                .from('client_profiles')
+                .update({ rating: average })
+                .eq('id', booking.student_id)
+        }
+
+        setSaving(false)
+        setExpanded(false)
+        window.location.reload()
+    }
+
+    return (
+        <div className="bg-white rounded-2xl border border-blue-100 shadow-sm overflow-hidden">
+            <div className="h-1.5 w-full bg-gradient-to-r from-blue-400 to-blue-500" />
+            <div className="p-5 flex gap-4">
+                <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 font-bold text-base flex items-center justify-center shrink-0 border border-blue-100">
+                    {profile?.avatar_url
+                        ? <img src={profile.avatar_url} alt={profile.full_name ?? ''} className="w-full h-full object-cover rounded-xl" />
+                        : getInitials(profile?.full_name ?? null)
+                    }
+                </div>
+
+                <div className="flex-1 min-w-0 space-y-2">
+                    <div className="flex items-start justify-between gap-2">
+                        <div>
+                            <p className="font-semibold text-gray-900">{profile?.full_name ?? 'Client'}</p>
+                            <div className="flex items-center gap-1 text-xs text-blue-600 font-medium mt-0.5">
+                                <Star className="w-3 h-3" />
+                                Ready to review
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full border bg-blue-50 text-blue-600 border-blue-100">
+                            <Star className="w-3 h-3 text-blue-400" />
+                            Awaiting Review
+                        </div>
+                    </div>
+
+                    <div className="flex flex-wrap gap-3 text-sm text-gray-500">
+                        <div className="flex items-center gap-1.5">
+                            <Calendar className="w-3.5 h-3.5 text-gray-400" />
+                            {formatDate(booking.date)}
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                            <Clock className="w-3.5 h-3.5 text-gray-400" />
+                            {formatTime(booking.start_time)} – {formatTime(booking.end_time)}
+                        </div>
+                    </div>
+
+                    {/* Review form toggle */}
+                    <div className="pt-1">
+                        {!expanded ? (
+                            <button
+                                onClick={() => setExpanded(true)}
+                                className="w-full py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition-colors"
+                            >
+                                Write Review
+                            </button>
+                        ) : (
+                            <div className="space-y-4 pt-1 border-t border-gray-100">
+
+                                {/* Star rating */}
+                                <div className="space-y-1.5">
+                                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                                        Rate this client <span className="text-red-400">*</span>
+                                    </p>
+                                    <div className="flex items-center gap-1">
+                                        {Array.from({ length: 5 }).map((_, i) => {
+                                            const val = i + 1
+                                            return (
+                                                <button
+                                                    key={i}
+                                                    type="button"
+                                                    onClick={() => setRating(val)}
+                                                    onMouseEnter={() => setHovered(val)}
+                                                    onMouseLeave={() => setHovered(0)}
+                                                    className="transition-transform hover:scale-110"
+                                                >
+                                                    <Star
+                                                        className={`w-7 h-7 transition-colors ${val <= (hovered || rating)
+                                                                ? 'text-amber-400 fill-amber-400'
+                                                                : 'text-gray-200 fill-gray-200'
+                                                            }`}
+                                                    />
+                                                </button>
+                                            )
+                                        })}
+                                        {rating > 0 && (
+                                            <span className="ml-2 text-sm text-gray-500">
+                                                {['', 'Poor', 'Fair', 'Good', 'Great', 'Excellent'][rating]}
+                                            </span>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* Attendance confirmation */}
+                                <div className="space-y-1.5">
+                                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                                        Did the student attend? <span className="text-red-400">*</span>
+                                    </p>
+                                    <div className="flex gap-2">
+                                        <button
+                                            onClick={() => setAttended(true)}
+                                            className={`flex-1 py-2 rounded-xl text-sm font-medium border transition-colors ${attended === true
+                                                    ? 'bg-green-600 border-green-600 text-white'
+                                                    : 'border-gray-200 text-gray-600 hover:border-green-300 hover:text-green-600'
+                                                }`}
+                                        >
+                                            ✓ Yes, attended
+                                        </button>
+                                        <button
+                                            onClick={() => setAttended(false)}
+                                            className={`flex-1 py-2 rounded-xl text-sm font-medium border transition-colors ${attended === false
+                                                    ? 'bg-red-500 border-red-500 text-white'
+                                                    : 'border-gray-200 text-gray-600 hover:border-red-300 hover:text-red-500'
+                                                }`}
+                                        >
+                                            ✗ No-show
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* Optional review */}
+                                <div className="space-y-1.5">
+                                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                                        Notes <span className="text-gray-400 font-normal normal-case">(optional)</span>
+                                    </p>
+                                    <textarea
+                                        value={review}
+                                        onChange={(e) => setReview(e.target.value)}
+                                        placeholder="Any notes about this client or session..."
+                                        rows={3}
+                                        className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-700 placeholder-gray-400 focus:border-blue-400 focus:outline-none resize-none"
+                                    />
+                                </div>
+
+                                {error && <p className="text-xs text-red-500">{error}</p>}
+
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={() => { setExpanded(false); setError('') }}
+                                        disabled={saving}
+                                        className="flex-1 py-2 rounded-xl border border-gray-200 text-gray-500 text-sm font-medium hover:bg-gray-50 transition-colors disabled:opacity-50"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        onClick={handleSubmit}
+                                        disabled={saving}
+                                        className="flex-1 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition-colors disabled:opacity-50"
+                                    >
+                                        {saving ? 'Saving…' : 'Submit Review'}
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </div>
+        </div>
+    )
+}
+
+type Tab = 'requests' | 'upcoming' | 'past' | 'review'
 
 export default function CoachBookingsPage() {
     const router = useRouter()
@@ -217,6 +449,7 @@ export default function CoachBookingsPage() {
     const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
 
     useEffect(() => {
+        // TODO: Add an async func that checkes for all confirmed sessions that are now completed - change there status to review
         async function load() {
             const { data: { user } } = await supabase.auth.getUser()
             if (!user) return router.push('/auth/login')
@@ -265,12 +498,15 @@ export default function CoachBookingsPage() {
 
     const pending = bookings.filter((b) => b.status === 'pending')
     const upcoming = bookings.filter((b) => b.status === 'confirmed' && isUpcoming(b.date))
-    const past = bookings.filter((b) => b.status === 'confirmed' && !isUpcoming(b.date))
+    const past = bookings.filter((b) => (b.status === 'completed-unpaid' || b.status === 'completed') && !isUpcoming(b.date))
+    const review_bookings = bookings.filter((b) => b.status === 'review')
+
 
     const TABS: { key: Tab; label: string; count?: number }[] = [
         { key: 'requests', label: 'Requests', count: pending.length },
         { key: 'upcoming', label: 'Upcoming', count: upcoming.length },
         { key: 'past', label: 'Past' },
+        { key: 'review' as Tab, label: 'To Review', count: review_bookings.length },
     ]
 
     const activeList =
@@ -358,6 +594,20 @@ export default function CoachBookingsPage() {
                                 <BookingCard key={b.id} booking={b} />
                             ))
                         }
+                        {tab === 'review' && (
+                            <div className="space-y-4">
+                                {review_bookings.length === 0 ? (
+                                <div className="text-center py-20 space-y-1">
+                                    <p className="text-gray-500 font-medium">No sessions to review</p>
+                                    <p className="text-sm text-gray-400">Sessions ready for review will appear here.</p>
+                                </div>
+                                ) : (
+                                review_bookings.map((b) => (
+                                    <ReviewCard key={b.id} booking={b} />
+                                ))
+                                )}
+                            </div>
+                        )}
                     </div>
                 )}
                 <Link
