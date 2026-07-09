@@ -449,10 +449,41 @@ export default function CoachBookingsPage() {
     const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
 
     useEffect(() => {
-        // TODO: Add an async func that checkes for all confirmed sessions that are now completed - change there status to review
+        // Check for confirmed sessions that have now passed and move them to 'review'
+        async function updateCompletedSessions(coachId: string) {
+            const now = new Date()
+            const todayStr = now.toISOString().split('T')[0]
+            const currentTime = now.toTimeString().slice(0, 5) // 'HH:MM'
+
+            const { data: confirmedBookings } = await supabase
+                .from('bookings')
+                .select('id, date, end_time')
+                .eq('coach_id', coachId)
+                .eq('status', 'confirmed')
+
+            if (!confirmedBookings) return
+
+            const expiredIds = confirmedBookings
+                .filter((b) => {
+                    if (b.date < todayStr) return true
+                    if (b.date === todayStr && b.end_time <= currentTime) return true
+                    return false
+                })
+                .map((b) => b.id)
+
+            if (expiredIds.length === 0) return
+
+            await supabase
+                .from('bookings')
+                .update({ status: 'review' })
+                .in('id', expiredIds)
+        }
+
         async function load() {
             const { data: { user } } = await supabase.auth.getUser()
             if (!user) return router.push('/auth/login')
+
+            await updateCompletedSessions(user.id)
 
             const { data: profile } = await supabase
                 .from('profiles')
@@ -497,7 +528,7 @@ export default function CoachBookingsPage() {
     }
 
     const pending = bookings.filter((b) => b.status === 'pending')
-    const upcoming = bookings.filter((b) => b.status === 'confirmed' && isUpcoming(b.date))
+    const upcoming = bookings.filter((b) => b.status === 'confirmed')
     const past = bookings.filter((b) => (b.status === 'completed-unpaid' || b.status === 'completed') && !isUpcoming(b.date))
     const review_bookings = bookings.filter((b) => b.status === 'review')
 
