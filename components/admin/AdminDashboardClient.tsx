@@ -33,7 +33,7 @@ type Session = {
     date: string
     start_time: string
     end_time: string
-    status: string
+    status: 'completed' | 'completed-unpaid'
     coach_profiles: {
         hourly_rate: number | null
         profiles: { full_name: string | null; avatar_url: string | null }
@@ -474,14 +474,14 @@ export default function AdminDashboardClient({
                                                 <div>
                                                     <p className="font-semibold text-gray-900">{coachName}</p>
                                                     <p className="text-xs text-gray-400">
-                                                        ${rate}/hr · {coachSessions.length} session{coachSessions.length !== 1 ? 's' : ''}
+                                                        R{rate}/hr · {coachSessions.length} session{coachSessions.length !== 1 ? 's' : ''}
                                                     </p>
                                                 </div>
                                             </div>
                                             <div className="text-right">
                                                 <p className="text-xs text-gray-400">Outstanding</p>
                                                 <p className={`text-lg font-bold ${allPaid ? 'text-green-600' : 'text-gray-900'}`}>
-                                                    {allPaid ? 'All paid ✓' : `$${totalOwed.toFixed(2)}`}
+                                                    {allPaid ? 'All paid ✓' : `R${totalOwed.toFixed(2)}`}
                                                 </p>
                                             </div>
                                         </div>
@@ -503,29 +503,19 @@ export default function AdminDashboardClient({
                                                         onClick={() => setActiveSession(session)}
                                                         className="flex items-center justify-between px-5 py-3 gap-4 hover:bg-gray-50 cursor-pointer transition-colors"
                                                     >
-                                                        <div className="flex items-center gap-3 min-w-0">
-                                                            <div className="w-8 h-8 rounded-lg bg-purple-50 text-purple-600 font-bold text-xs flex items-center justify-center border border-purple-100 overflow-hidden shrink-0">
-                                                                {session.profiles?.avatar_url
-                                                                    ? <img src={session.profiles.avatar_url} alt="" className="w-full h-full object-cover rounded-lg" />
-                                                                    : getInitials(session.profiles?.full_name ?? null)
-                                                                }
-                                                            </div>
-                                                            <div className="min-w-0">
-                                                                <p className="text-sm font-medium text-gray-800 truncate">
-                                                                    {session.profiles?.full_name ?? 'Client'}
-                                                                </p>
-                                                                <p className="text-xs text-gray-400">
-                                                                    {new Date(session.date + 'T00:00:00').toLocaleDateString('en-ZA', {
-                                                                        month: 'short', day: 'numeric', timeZone: 'Africa/Johannesburg',
-                                                                    })} · {formatTime(session.start_time)} – {formatTime(session.end_time)} · {mins} min
-                                                                </p>
-                                                            </div>
-                                                        </div>
-
                                                         <div className="flex items-center gap-3 shrink-0">
+                                                            {/* Status badge */}
+                                                            <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${session.status === 'completed'
+                                                                    ? 'bg-green-50 text-green-600'
+                                                                    : 'bg-orange-50 text-orange-600'
+                                                                }`}>
+                                                                {session.status === 'completed' ? 'Paid' : 'Unpaid'}
+                                                            </span>
+
                                                             <span className="text-sm font-semibold text-gray-700">
                                                                 R{amount.toFixed(2)}
                                                             </span>
+
                                                             {isPaid ? (
                                                                 <span className="flex items-center gap-1 text-xs font-medium text-green-600 bg-green-50 border border-green-100 px-3 py-1.5 rounded-xl">
                                                                     <Check className="w-3 h-3" /> Paid

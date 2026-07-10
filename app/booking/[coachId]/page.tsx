@@ -149,7 +149,7 @@ export default function CoachBookingPage() {
         })
 
         if (error) {
-            setBookingError('This slot may already be booked. Please choose another.')
+            setBookingError('This slot may already be booked or time is unavailable. Please choose another.')
             setBooking(false)
             return
         }
