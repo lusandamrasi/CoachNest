@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { MapPin, Star, Clock, ChevronLeft, ChevronRight, Check } from 'lucide-react'
+import { MapPin, Star, Clock, ChevronLeft, ChevronRight, Check, Users } from 'lucide-react'
 
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
@@ -25,6 +25,7 @@ type AvailabilitySlot = {
     start_time: string
     end_time: string
     notes: string | null
+    num_clients: number
 }
 
 function getInitials(name: string | null) {
@@ -331,16 +332,47 @@ export default function CoachBookingPage() {
                                         <button
                                             key={slot.id}
                                             onClick={() => { setSelectedSlot(slot); setBooked(false); setBookingError('') }}
-                                            className={`w-full text-left px-4 py-2.5 rounded-xl text-sm font-medium border transition-colors ${selectedSlot?.id === slot.id
+                                            className={`w-full text-left px-4 py-2.5 rounded-xl text-sm font-medium border transition-all ${selectedSlot?.id === slot.id
                                                     ? 'bg-blue-600 border-blue-600 text-white'
                                                     : 'border-gray-200 text-gray-700 hover:border-blue-300 hover:text-blue-600'
                                                 }`}
                                         >
                                             <div className="flex items-center justify-between gap-3">
-                                                <span>{formatTime(slot.start_time)} – {formatTime(slot.end_time)}</span>
+                                                <span className={selectedSlot?.id === slot.id ? 'text-base font-semibold' : ''}>
+                                                    {formatTime(slot.start_time)} – {formatTime(slot.end_time)}
+                                                </span>
+                                                {slot.num_clients > 1 && (
+                                                    <span className={`flex items-center gap-1 text-xs font-medium ${selectedSlot?.id === slot.id ? 'text-blue-100' : 'text-gray-400'
+                                                        }`}>
+                                                        <Users className="w-3 h-3" />
+                                                        {slot.num_clients} spots
+                                                    </span>
+                                                )}
                                             </div>
-                                            {slot.notes && (
-                                                <p className={`mt-1 text-xs whitespace-pre-line ${selectedSlot?.id === slot.id ? 'text-blue-50' : 'text-gray-500'}`}>
+
+                                            {/* Expanded content when selected */}
+                                            {selectedSlot?.id === slot.id && (
+                                                <div className="mt-3 space-y-2 border-t border-blue-500 pt-3">
+                                                    <div className="flex items-center gap-2 text-blue-100 text-xs">
+                                                        <Users className="w-3.5 h-3.5 shrink-0" />
+                                                        <span>
+                                                            {slot.num_clients === 1
+                                                                ? 'Private session'
+                                                                : `Group session — up to ${slot.num_clients} clients`
+                                                            }
+                                                        </span>
+                                                    </div>
+                                                    {slot.notes && (
+                                                        <div className="text-blue-50 text-sm leading-relaxed whitespace-pre-line">
+                                                            {slot.notes}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
+
+                                            {/* Collapsed notes preview when not selected */}
+                                            {selectedSlot?.id !== slot.id && slot.notes && (
+                                                <p className="mt-1 text-xs text-gray-500 truncate whitespace-pre-line">
                                                     {slot.notes}
                                                 </p>
                                             )}

@@ -309,7 +309,7 @@ export default function ClientBookingCalendar({ bookings }: { bookings: Booking[
                                                         })()}
                                                     </span>
                                                     {coach?.hourly_rate && (
-                                                        <span className="font-medium text-gray-500">${coach.hourly_rate}/hr</span>
+                                                        <span className="font-medium text-gray-500">R{coach.hourly_rate}/hr</span>
                                                     )}
                                                 </div>
 

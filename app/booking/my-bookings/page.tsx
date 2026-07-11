@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 import { Calendar, Clock, MapPin, ChevronRight, Check, X, AlertCircle, ChevronLeft } from 'lucide-react'
 import Link from 'next/link'
 import Footer from '@/components/layout/Footer'
+import PaystackPop from '@paystack/inline-js'
 
 type Booking = {
     id: string
@@ -67,6 +68,24 @@ const STATUS_CONFIG = {
         icon: X,
         className: 'bg-red-50 text-red-600 border-red-100',
         iconClass: 'text-red-400',
+    },
+    review: {
+        label: 'Completed',
+        icon: Check,
+        className: 'bg-gray-100 text-gray-500 border-gray-200',
+        iconClass: 'text-gray-400',
+    },
+    'completed-unpaid': {
+        label: 'Completed',
+        icon: Check,
+        className: 'bg-gray-100 text-gray-500 border-gray-200',
+        iconClass: 'text-gray-400',
+    },
+    completed: {
+        label: 'Completed',
+        icon: Check,
+        className: 'bg-gray-100 text-gray-500 border-gray-200',
+        iconClass: 'text-gray-400',
     },
 }
 
@@ -149,7 +168,7 @@ function BookingCard({ booking, onPay }: { booking: Booking; onPay: (booking: Bo
                     <div className="flex items-center justify-between pt-2 border-t border-gray-50">
                         <span className="text-sm font-semibold text-gray-700">
                             {coach?.hourly_rate != null
-                                ? `$${coach.hourly_rate}`
+                                ? `R${coach.hourly_rate}`
                                 : 'Rate on request'
                             }
                         </span>
@@ -179,11 +198,15 @@ export default function MyBookingsPage() {
     const [bookings, setBookings] = useState<Booking[]>([])
     const [loading, setLoading] = useState(true)
     const [filter, setFilter] = useState<Filter>('upcoming')
+    const [userEmail, setUserEmail] = useState<string | null>(null)
+
 
     useEffect(() => {
         async function load() {
             const { data: { user } } = await supabase.auth.getUser()
             if (!user) return router.push('/auth/login')
+            
+            setUserEmail(user.email ?? null)
 
             const { data } = await supabase
                 .from('bookings')
@@ -204,8 +227,45 @@ export default function MyBookingsPage() {
     }, [])
 
     const handlePay = (booking: Booking) => {
-        // Route to your payment page — replace with your actual payment flow
-        router.push(`/payment/${booking.id}`)
+        const rate = booking.coach_profiles?.hourly_rate ?? 0
+
+        const [sh, sm] = booking.start_time.split(':').map(Number)
+        const [eh, em] = booking.end_time.split(':').map(Number)
+        const hrs = ((eh * 60 + em) - (sh * 60 + sm)) / 60
+        const amountRands = rate * hrs
+        const amountKobo = Math.round(amountRands * 100) // Paystack uses kobo (cents)
+
+        const paystack = new PaystackPop()
+        paystack.newTransaction({
+            key: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY!,
+            email: userEmail!,
+            amount: amountKobo,
+            currency: 'ZAR',
+            metadata: {
+                booking_id: booking.id,
+                coach_name: booking.coach_profiles?.profiles?.full_name ?? '',
+            },
+            onSuccess: async (transaction: { reference: string }) => {
+                // Verify and mark as paid via API route
+                const res = await fetch('/api/payments/verify', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        reference: transaction.reference,
+                        bookingId: booking.id,
+                    }),
+                })
+
+                if (res.ok) {
+                    setBookings((prev) =>
+                        prev.map((b) => b.id === booking.id ? { ...b, paid: true } : b)
+                    )
+                }
+            },
+            onCancel: () => {
+                console.log('Payment cancelled')
+            },
+        })
     }
 
     const FILTERS: { key: Filter; label: string }[] = [

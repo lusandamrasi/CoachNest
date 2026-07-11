@@ -612,12 +612,14 @@ export default function CoachBookingsPage() {
                         <p className="text-gray-500 font-medium">
                             {tab === 'requests' ? 'No pending requests' :
                                 tab === 'upcoming' ? 'No upcoming sessions' :
-                                    'No past sessions'}
+                                    tab === 'review' ? 'No sessions to review' :
+                                        'No past sessions'}
                         </p>
                         <p className="text-sm text-gray-400">
                             {tab === 'requests' ? 'New booking requests will appear here.' :
                                 tab === 'upcoming' ? 'Accepted bookings will show up here.' :
-                                    'Completed sessions will appear here.'}
+                                    tab === 'review' ? 'Sessions ready for review will appear here.' :
+                                        'Completed sessions will appear here.'}
                         </p>
                     </div>
                 ) : (
@@ -632,23 +634,9 @@ export default function CoachBookingsPage() {
                                     acting={acting}
                                 />
                             ))
-                            : activeList.map((b) => (
-                                <BookingCard key={b.id} booking={b} />
-                            ))
-                        }
-                        {tab === 'review'
-                            ? activeList.map((b) => (
-                                <ReviewCard key={b.id} booking={b} />
-                                ))
-                            : tab === 'requests'
+                            : tab === 'review'
                                 ? activeList.map((b) => (
-                                    <PendingCard
-                                    key={b.id}
-                                    booking={b}
-                                    onAccept={(id) => updateStatus(id, 'confirmed')}
-                                    onReject={(id) => updateStatus(id, 'cancelled')}
-                                    acting={acting}
-                                    />
+                                    <ReviewCard key={b.id} booking={b} />
                                 ))
                                 : activeList.map((b) => (
                                     <BookingCard key={b.id} booking={b} />
