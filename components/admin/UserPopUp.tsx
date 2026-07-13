@@ -109,7 +109,7 @@ export default function UserPopup({
                         date: data.date,
                         start_time: data.start_time,
                         end_time: data.end_time,
-                        coach_name: (data.coach_profiles as any)?.profiles?.full_name ?? null,
+                        coach_name: (data.coach_profiles as unknown as { profiles: { full_name: string | null } | null } | null)?.profiles?.full_name ?? null,
                         client_name: null,
                     })
                 }
@@ -132,7 +132,7 @@ export default function UserPopup({
                         start_time: data.start_time,
                         end_time: data.end_time,
                         coach_name: null,
-                        client_name: (data.profiles as any)?.full_name ?? null,
+                        client_name: (data.profiles as unknown as { full_name: string | null } | null)?.full_name ?? null,
                     })
                 }
             }

@@ -138,6 +138,27 @@ export default function CoachBookingPage() {
         setBooking(true)
         setBookingError('')
 
+        // Block duplicate requests: the coach can't accept a second booking for
+        // a date the client already has pending/confirmed with them
+        const { data: existing } = await supabase
+            .from('bookings')
+            .select('id, status')
+            .eq('student_id', user.id)
+            .eq('coach_id', coachId)
+            .eq('date', toDateString(selectedDate))
+            .in('status', ['pending', 'confirmed'])
+            .limit(1)
+
+        if (existing && existing.length > 0) {
+            setBookingError(
+                existing[0].status === 'confirmed'
+                    ? `You already have a confirmed session with this coach on ${formatDateLong(selectedDate)}.`
+                    : `You already have a pending booking request with this coach on ${formatDateLong(selectedDate)}.`
+            )
+            setBooking(false)
+            return
+        }
+
         const { error } = await supabase.from('bookings').insert({
             coach_id: coachId,
             student_id: user.id,

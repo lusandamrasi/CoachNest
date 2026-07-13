@@ -1,6 +1,6 @@
 'use client'
 
-import { X, Calendar, Clock, User, Dumbbell, DollarSign } from 'lucide-react'
+import { X, Calendar, Clock, Dumbbell, DollarSign } from 'lucide-react'
 
 type Session = {
     id: string

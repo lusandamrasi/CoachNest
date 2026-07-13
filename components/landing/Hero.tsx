@@ -25,12 +25,14 @@ export default function Hero() {
 
       <div className="relative z-10 mx-auto max-w-4xl px-4 text-center sm:px-6 lg:px-8">
         <h1 className="text-5xl font-extrabold tracking-tight text-gray-900 sm:text-6xl lg:text-7xl">
-          Find Your{' '}
-          <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-            Perfect
-          </span>
+          Better Coaches.
           <br />
-          Private Coach
+          Stronger Athletes.
+          <br />
+          One{' '}
+          <span className="bg-gradient-to-r from-blue-500 to-blue-600 bg-clip-text text-transparent">
+            Nest.
+          </span>
         </h1>
 
         <p className="mx-auto mt-6 max-w-2xl text-lg text-gray-600 sm:text-xl">

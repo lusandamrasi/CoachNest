@@ -7,6 +7,7 @@ import { LogOut } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import Button from '@/components/ui/Button'
 import Logo from '@/components/layout/Logo'
+import ThemeToggle from '@/components/layout/ThemeToggle'
 
 interface DashboardNavProps {
   fullName: string | null
@@ -73,6 +74,7 @@ export default function DashboardNav({
         </nav>
 
         <div className="flex items-center gap-3">
+          <ThemeToggle />
           <Link
             href={profileHref}
             aria-label="View profile"

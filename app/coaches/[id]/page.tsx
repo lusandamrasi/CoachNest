@@ -198,7 +198,7 @@ export default async function CoachProfilePage({ params }: { params: { id: strin
           <div className="mt-6">
             <Link
               href={bookHref}
-              className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-6 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-blue-700 sm:w-auto"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-6 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-blue-700"
             >
               <CalendarPlus className="h-4 w-4" />
               Book a Session

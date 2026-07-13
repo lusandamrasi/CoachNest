@@ -6,7 +6,6 @@ import { createClient } from '@/lib/supabase/client'
 import { Calendar, Clock, MapPin, ChevronRight, Check, X, AlertCircle, ChevronLeft } from 'lucide-react'
 import Link from 'next/link'
 import Footer from '@/components/layout/Footer'
-import PaystackPop from '@paystack/inline-js'
 
 type Booking = {
     id: string
@@ -226,7 +225,7 @@ export default function MyBookingsPage() {
         load()
     }, [])
 
-    const handlePay = (booking: Booking) => {
+    const handlePay = async (booking: Booking) => {
         const rate = booking.coach_profiles?.hourly_rate ?? 0
 
         const [sh, sm] = booking.start_time.split(':').map(Number)
@@ -235,6 +234,8 @@ export default function MyBookingsPage() {
         const amountRands = rate * hrs
         const amountKobo = Math.round(amountRands * 100) // Paystack uses kobo (cents)
 
+        // Imported lazily: the library touches `window` at import time, which breaks prerendering
+        const PaystackPop = (await import('@paystack/inline-js')).default
         const paystack = new PaystackPop()
         paystack.newTransaction({
             key: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY!,

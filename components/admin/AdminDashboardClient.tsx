@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/client'
 import {
     Users, Flag, ChevronDown, ChevronUp, Check,
     Clock, AlertCircle, Shield, User, Dumbbell, CalendarCheck,
+    type LucideIcon,
 } from 'lucide-react'
 import SessionPopup from './SessionPopUp'
 import UserPopup from './UserPopUp'
@@ -50,12 +51,6 @@ function formatDate(dateStr: string) {
     return new Date(dateStr).toLocaleDateString('en-US', {
         month: 'short', day: 'numeric', year: 'numeric',
     })
-}
-
-function formatTime(t: string) {
-    const [h, m] = t.split(':')
-    const h12 = parseInt(h) % 12 || 12
-    return `${h12}:${m} ${parseInt(h) < 12 ? 'AM' : 'PM'}`
 }
 
 const STATUS_CONFIG = {
@@ -335,7 +330,7 @@ export default function AdminDashboardClient({
                         { key: 'users', label: 'Users', icon: Users, count: initialUsers.length },
                         { key: 'reports', label: 'Reports', icon: Flag, count: openCount },
                         { key: 'sessions', label: 'Sessions', icon: CalendarCheck, count: initialSessions.length },
-                    ] as { key: Tab; label: string; icon: any; count: number }[]).map(({ key, label, icon: Icon, count }) => (
+                    ] as { key: Tab; label: string; icon: LucideIcon; count: number }[]).map(({ key, label, icon: Icon, count }) => (
                         <button
                             key={key}
                             onClick={() => setTab(key)}

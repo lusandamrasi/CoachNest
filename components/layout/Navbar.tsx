@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation'
 import { Menu, X, LogOut } from 'lucide-react'
 import Button from '@/components/ui/Button'
 import Logo from '@/components/layout/Logo'
+import ThemeToggle from '@/components/layout/ThemeToggle'
 import { createClient } from '@/lib/supabase/client'
 
 type AuthUser = {
@@ -119,6 +120,7 @@ export default function Navbar() {
 
         {/* Desktop CTA */}
         <div className="hidden md:flex items-center gap-3">
+          <ThemeToggle />
           {!authReady ? null : authUser ? (
             <>
               <Link
@@ -159,13 +161,16 @@ export default function Navbar() {
         </div>
 
         {/* Mobile hamburger */}
-        <button
-          className="md:hidden rounded-lg p-2 text-gray-600 hover:bg-gray-100"
-          onClick={() => setMobileOpen((o) => !o)}
-          aria-label="Toggle menu"
-        >
-          {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-        </button>
+        <div className="flex items-center gap-1 md:hidden">
+          <ThemeToggle />
+          <button
+            className="rounded-lg p-2 text-gray-600 hover:bg-gray-100"
+            onClick={() => setMobileOpen((o) => !o)}
+            aria-label="Toggle menu"
+          >
+            {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
+        </div>
       </div>
 
       {/* Mobile menu */}

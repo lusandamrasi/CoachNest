@@ -169,9 +169,18 @@ function PendingCard({
 
 function BookingCard({ booking }: { booking: Booking }) {
     const profile = booking.profiles
-    const status = STATUS_CONFIG[booking.status]
-    const StatusIcon = status.icon
     const upcoming = isUpcoming(booking.date)
+    // A request the coach never responded to before its date came and went
+    const isExpired = booking.status === 'pending' && !upcoming
+    const status = isExpired
+        ? {
+            label: 'Expired',
+            icon: Clock,
+            className: 'bg-gray-100 text-gray-500 border-gray-200 italic',
+            iconClass: 'text-gray-400',
+        }
+        : STATUS_CONFIG[booking.status]
+    const StatusIcon = status.icon
 
     return (
         <div className={`bg-white rounded-2xl border shadow-sm overflow-hidden ${booking.status === 'cancelled' ? 'opacity-60 border-gray-100' : 'border-gray-100'
@@ -530,7 +539,7 @@ export default function CoachBookingsPage() {
         setActing(null)
     }
 
-    const pending = bookings.filter((b) => b.status === 'pending')
+    const pending = bookings.filter((b) => b.status === 'pending' && isUpcoming(b.date))
     const review_bookings = bookings.filter((b) => b.status === 'review')
     const upcoming = bookings.filter((b) =>
         b.status === 'confirmed' && isUpcoming(b.date)
@@ -538,7 +547,7 @@ export default function CoachBookingsPage() {
     const past = bookings.filter((b) =>
         b.status === 'completed-unpaid' ||
         b.status === 'completed' ||
-        (b.status === 'confirmed' && !isUpcoming(b.date))
+        ((b.status === 'confirmed' || b.status === 'pending') && !isUpcoming(b.date))
     )
 
 

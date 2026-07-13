@@ -1,6 +1,9 @@
+import { ComponentProps } from 'react'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import AdminDashboardClient from '@/components/admin/AdminDashboardClient'
+
+type AdminDashboardProps = ComponentProps<typeof AdminDashboardClient>
 
 export const metadata = { title: 'Admin Dashboard — CoachNest' }
 
@@ -22,7 +25,7 @@ export default async function AdminDashboardPage() {
     .select('id, full_name, avatar_url, role, created_at')
     .order('created_at', { ascending: false })
 
-  const { data: reports, error: reportsError } = await supabase
+  const { data: reports } = await supabase
     .from('reports')
     .select(`
     id, reason, details, status, created_at, reported_type,
@@ -32,7 +35,7 @@ export default async function AdminDashboardPage() {
     .order('created_at', { ascending: false })
 
 
-  const { data: sessions, error: sessionsError } = await supabase
+  const { data: sessions } = await supabase
     .from('bookings')
     .select(`
     id, date, start_time, end_time, status,
@@ -49,8 +52,9 @@ export default async function AdminDashboardPage() {
   return (
     <AdminDashboardClient
       users={users ?? []}
-      reports={reports ?? []}
-      sessions={sessions ?? []}
+      // Supabase infers to-one joins as arrays; at runtime they are single objects
+      reports={(reports ?? []) as unknown as AdminDashboardProps['reports']}
+      sessions={(sessions ?? []) as unknown as AdminDashboardProps['sessions']}
     />
   )
 }
