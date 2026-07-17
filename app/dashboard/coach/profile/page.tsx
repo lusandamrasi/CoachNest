@@ -1,6 +1,5 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import DashboardNav from '@/components/layout/DashboardNav'
 import Breadcrumb from '@/components/layout/Breadcrumb'
 import ProfileOverview from '@/components/coach/ProfileOverview'
 
@@ -27,13 +26,6 @@ export default async function CoachProfilePage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <DashboardNav
-        fullName={profile?.full_name ?? null}
-        avatarUrl={profile?.avatar_url ?? null}
-        profileHref="/dashboard/coach/profile"
-        dashboardHref="/dashboard/coach"
-      />
-
       <main className="mx-auto max-w-4xl px-4 py-10 sm:px-6 lg:px-8">
         <Breadcrumb dashboardHref="/dashboard/coach" current="My Profile" />
         <div className="mb-8">

@@ -14,7 +14,6 @@ import {
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import Card from '@/components/ui/Card'
-import DashboardNav from '@/components/layout/DashboardNav'
 
 export const metadata = { title: 'Client Profile — CoachNest' }
 
@@ -66,13 +65,6 @@ export default async function ClientProfileView({ params }: { params: { id: stri
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <DashboardNav
-        fullName={viewerProfile?.full_name ?? null}
-        avatarUrl={viewerProfile?.avatar_url ?? null}
-        profileHref={dashboardHref}
-        dashboardHref={dashboardHref}
-      />
-
       <main className="mx-auto max-w-4xl px-4 pb-16 pt-10 sm:px-6 lg:px-8">
         <Link
           href={dashboardHref}

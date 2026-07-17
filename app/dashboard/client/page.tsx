@@ -1,12 +1,10 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { Search, CalendarCheck, CalendarSearch, UserPen} from 'lucide-react'
-import DashboardNav from '@/components/layout/DashboardNav'
 import Card from '@/components/ui/Card'
 import Link from 'next/link'
 import ClientBookingCalendar from '@/components/client/ClientBookingCalendar'
 import Greeting from '@/components/ui/Greeting'
-import CartButton from '@/components/client/CartButton'
 
 export const metadata = { title: 'Client Dashboard — CoachNest' }
 
@@ -74,13 +72,6 @@ export default async function ClientDashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <DashboardNav
-        fullName={profile?.full_name ?? null}
-        avatarUrl={profile?.avatar_url ?? null}
-        profileHref="/dashboard/client/profile"
-        dashboardHref="/dashboard/client"
-      />
-
       <main className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
         <div className="mb-10 flex items-start justify-between gap-4">
           <div>
@@ -90,7 +81,6 @@ export default async function ClientDashboard() {
             </h1>
             <p className="mt-2 text-gray-500">Find a coach and start training today.</p>
           </div>
-          <CartButton />
         </div>
 
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">

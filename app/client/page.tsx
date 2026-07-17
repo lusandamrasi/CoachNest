@@ -1,6 +1,5 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import DashboardNav from '@/components/layout/DashboardNav'
 import ClientProfileForm from '@/components/client/ClientProfileForm'
 
 export const metadata = { title: 'Edit Profile — CoachNest' }
@@ -30,13 +29,6 @@ export default async function EditClientProfilePage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <DashboardNav
-        fullName={profile?.full_name ?? null}
-        avatarUrl={profile?.avatar_url ?? null}
-        profileHref="/dashboard/client/profile"
-        dashboardHref="/dashboard/client"
-      />
-
       <main className="mx-auto max-w-3xl px-4 py-10 sm:px-6 lg:px-8">
         <div className="mb-8">
           <p className="text-sm font-medium text-blue-600">Client</p>

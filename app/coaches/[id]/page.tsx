@@ -12,8 +12,6 @@ import {
   CalendarPlus,
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
-import Navbar from '@/components/layout/Navbar'
-import Footer from '@/components/layout/Footer'
 import Badge from '@/components/ui/Badge'
 import Card from '@/components/ui/Card'
 import ReviewForm from '@/components/coach/ReviewForm'
@@ -118,8 +116,7 @@ export default async function CoachProfilePage({ params }: { params: { id: strin
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navbar />
-      <main className="mx-auto max-w-5xl px-4 pb-16 pt-24 sm:px-6 lg:px-8">
+      <main className="mx-auto max-w-5xl px-4 py-10 sm:px-6 lg:px-8">
         {/* Header card */}
         <Card padding="lg">
           <div className="flex flex-col gap-6 sm:flex-row sm:items-start">
@@ -409,7 +406,6 @@ export default async function CoachProfilePage({ params }: { params: { id: strin
           <ReportCoachButton coachId={coach.id} />
         </div>
       </main>
-      <Footer />
     </div>
   )
 }

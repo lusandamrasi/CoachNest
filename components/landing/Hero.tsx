@@ -9,7 +9,7 @@ const SPORTS_GRID = [
 
 export default function Hero() {
   return (
-    <section className="relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-to-br from-blue-50 via-white to-indigo-50 pt-16">
+    <section className="relative flex min-h-[calc(100vh-4rem)] items-center justify-center overflow-hidden bg-gradient-to-br from-blue-50 via-white to-indigo-50">
       {/* Animated emoji grid background */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden opacity-10">
         <div className="animate-scroll-slow flex flex-wrap gap-8 p-8 text-4xl">

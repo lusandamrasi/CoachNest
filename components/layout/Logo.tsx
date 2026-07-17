@@ -29,7 +29,7 @@ export default function Logo({
         width={img}
         height={img}
         priority
-        className="object-contain"
+        className="object-contain dark:invert"
       />
       {showWordmark && (
         <span className={`font-bold ${text}`}>

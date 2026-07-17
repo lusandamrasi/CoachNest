@@ -2,6 +2,8 @@ import type { Metadata } from 'next'
 import localFont from 'next/font/local'
 import './globals.css'
 import MapsProvider from '@/components/providers/MapsProvider'
+import Navbar from '@/components/layout/Navbar'
+import Footer from '@/components/layout/Footer'
 
 const geistSans = localFont({
   src: './fonts/GeistVF.woff',
@@ -31,8 +33,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           }}
         />
       </head>
-      <body className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased`}>
-        <MapsProvider>{children}</MapsProvider>
+      <body className={`${geistSans.variable} ${geistMono.variable} flex min-h-screen flex-col font-sans antialiased`}>
+        <MapsProvider>
+          <Navbar />
+          <div className="flex-1">{children}</div>
+          <Footer />
+        </MapsProvider>
       </body>
     </html>
   )

@@ -6,7 +6,6 @@ import { createClient } from '@/lib/supabase/client'
 import { Calendar, Clock, Check, X, AlertCircle, User, Star } from 'lucide-react'
 import Link from 'next/link'
 import { ChevronLeft } from 'lucide-react'
-import DashboardNav from '@/components/layout/DashboardNav'
 
 type Booking = {
     id: string
@@ -454,8 +453,6 @@ export default function CoachBookingsPage() {
     const [tab, setTab] = useState<Tab>('requests')
     const [acting, setActing] = useState<string | null>(null)
     const [error, setError] = useState('')
-    const [fullName, setFullName] = useState<string | null>(null)
-    const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
 
     useEffect(() => {
         // Check for confirmed sessions that have now passed and move them to 'review'
@@ -493,14 +490,6 @@ export default function CoachBookingsPage() {
             if (!user) return router.push('/auth/login')
 
             await updateCompletedSessions(user.id)
-
-            const { data: profile } = await supabase
-                .from('profiles')
-                .select('full_name, avatar_url')
-                .eq('id', user.id)
-                .single()
-            setFullName(profile?.full_name ?? null)
-            setAvatarUrl(profile?.avatar_url ?? null)
 
             const { data } = await supabase
                 .from('bookings')
@@ -567,12 +556,6 @@ export default function CoachBookingsPage() {
 
     return (
         <div className="min-h-screen bg-gray-50">
-            <DashboardNav
-                fullName={fullName}
-                avatarUrl={avatarUrl}
-                profileHref="/dashboard/coach/profile"
-                dashboardHref="/dashboard/coach"
-            />
             <div className="max-w-2xl mx-auto px-4 py-8 space-y-6">
                 {/* Header */}
                 <div>

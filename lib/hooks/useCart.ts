@@ -63,7 +63,7 @@ export function useCart() {
       `)
       .eq('student_id', user.id)
       .eq('status', 'confirmed')
-      .eq('payment_status', 'unpaid')
+      .eq('paid', false)
       .gte('date', todayStr)
       .order('date', { ascending: true })
 

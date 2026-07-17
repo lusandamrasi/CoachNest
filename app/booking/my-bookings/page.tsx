@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Calendar, Clock, MapPin, ChevronRight, Check, X, AlertCircle, ChevronLeft } from 'lucide-react'
 import Link from 'next/link'
-import Footer from '@/components/layout/Footer'
 
 type Booking = {
     id: string
@@ -13,7 +12,7 @@ type Booking = {
     start_time: string
     end_time: string
     status: 'pending' | 'confirmed' | 'cancelled'
-    payment_status?: 'unpaid' | 'pending' | 'paid' | null
+    paid?: boolean | null
     coach_profiles: {
         sport: string
         hourly_rate: number | null
@@ -131,13 +130,13 @@ function BookingCard({ booking, onPay }: { booking: Booking; onPay: (booking: Bo
                                 <StatusIcon className={`w-3 h-3 ${status.iconClass}`} />
                                 {status.label}
                             </div>
-                            {booking.status === 'confirmed' && booking.payment_status === 'unpaid' && (
+                            {booking.status === 'confirmed' && !booking.paid && (
                                 <span className="flex items-center gap-1 text-xs font-medium text-amber-600 bg-amber-50 border border-amber-100 px-2 py-0.5 rounded-full">
                                     <AlertCircle className="w-3 h-3 text-amber-400" />
                                     Unpaid
                                 </span>
                             )}
-                            {booking.status === 'confirmed' && booking.payment_status === 'paid' && (
+                            {booking.status === 'confirmed' && booking.paid === true && (
                                 <span className="flex items-center gap-1 text-xs font-medium text-green-600 bg-green-50 border border-green-100 px-2 py-0.5 rounded-full">
                                     <Check className="w-3 h-3 text-green-400" />
                                     Paid
@@ -172,7 +171,7 @@ function BookingCard({ booking, onPay }: { booking: Booking; onPay: (booking: Bo
                             }
                         </span>
 
-                        {booking.status === 'confirmed' && upcoming && (
+                        {booking.status === 'confirmed' && upcoming && !booking.paid && (
                             <button
                                 onClick={() => onPay(booking)}
                                 className="flex items-center gap-1.5 px-4 py-1.5 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-xl transition-colors"
@@ -210,7 +209,7 @@ export default function MyBookingsPage() {
             const { data } = await supabase
                 .from('bookings')
                 .select(`
-          id, date, start_time, end_time, status, payment_status,
+          id, date, start_time, end_time, status, paid,
           coach_profiles (
             sport, hourly_rate, location,
             profiles ( full_name, avatar_url )
@@ -358,7 +357,6 @@ export default function MyBookingsPage() {
                 </Link>
         </div>
             
-        <Footer />
         </>
     )
 }

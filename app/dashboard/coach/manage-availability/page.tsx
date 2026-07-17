@@ -6,7 +6,6 @@ import { createClient } from '@/lib/supabase/client'
 import Button from '@/components/ui/Button'
 import Link from 'next/link'
 import { ChevronLeft, Users } from 'lucide-react'
-import DashboardNav from '@/components/layout/DashboardNav'
 
 const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
 
@@ -36,8 +35,6 @@ export default function AvailabilityPage() {
     const supabase = createClient()
 
     const [coachId, setCoachId] = useState<string | null>(null)
-    const [fullName, setFullName] = useState<string | null>(null)
-    const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
     const [savedSlots, setSavedSlots] = useState<Slot[]>([])
     const [selectedDay, setSelectedDay] = useState<number>(1)
     const [startTime, setStartTime] = useState('09:00')
@@ -54,14 +51,6 @@ export default function AvailabilityPage() {
             const { data: { user } } = await supabase.auth.getUser()
             if (!user) return router.push('/auth/login')
             setCoachId(user.id)
-
-            const { data: profile } = await supabase
-                .from('profiles')
-                .select('full_name, avatar_url')
-                .eq('id', user.id)
-                .single()
-            setFullName(profile?.full_name ?? null)
-            setAvatarUrl(profile?.avatar_url ?? null)
 
             const { data } = await supabase
                 .from('availability')
@@ -173,12 +162,6 @@ export default function AvailabilityPage() {
 
     return (
         <div className="min-h-screen bg-gray-50">
-            <DashboardNav
-                fullName={fullName}
-                avatarUrl={avatarUrl}
-                profileHref="/dashboard/coach/profile"
-                dashboardHref="/dashboard/coach"
-            />
             <div className="max-w-xl mx-auto px-4 py-10 space-y-8">
             <div>
                 <h1 className="text-2xl font-bold text-gray-900">Set Your Availability</h1>

@@ -1,6 +1,5 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import DashboardNav from '@/components/layout/DashboardNav'
 import CheckoutContent from '@/components/client/CheckoutContent'
 
 export const metadata = { title: 'Checkout — CoachNest' }
@@ -21,12 +20,6 @@ export default async function CheckoutPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <DashboardNav
-        fullName={profile?.full_name ?? null}
-        avatarUrl={profile?.avatar_url ?? null}
-        profileHref="/dashboard/client/profile"
-        dashboardHref="/dashboard/client"
-      />
       <main>
         <CheckoutContent />
       </main>

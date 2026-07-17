@@ -1,6 +1,6 @@
 'use client'
 
-import { X, Calendar, Clock, Dumbbell, DollarSign } from 'lucide-react'
+import { X, Calendar, Clock, Dumbbell, Banknote } from 'lucide-react'
 
 type Session = {
     id: string
@@ -164,12 +164,12 @@ export default function SessionPopup({
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-3 px-4 py-3">
-                                    <DollarSign className="w-4 h-4 text-gray-400 shrink-0" />
+                                    <Banknote className="w-4 h-4 text-gray-400 shrink-0" />
                                     <div>
                                         <p className="text-xs text-gray-400">Session value</p>
                                         <p className="text-sm font-medium text-gray-700">
-                                            ${sessionValue.toFixed(2)}
-                                            <span className="ml-2 text-xs text-gray-400">(${rate}/hr × {hrs.toFixed(1)} hr)</span>
+                                            R{sessionValue.toFixed(2)}
+                                            <span className="ml-2 text-xs text-gray-400">(R{rate}/hr × {hrs.toFixed(1)} hr)</span>
                                         </p>
                                     </div>
                                 </div>

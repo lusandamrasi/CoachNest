@@ -15,7 +15,7 @@ export default function CartButton() {
         type="button"
         onClick={() => setOpen(true)}
         aria-label={`Open cart (${cartCount} item${cartCount !== 1 ? 's' : ''})`}
-        className="relative inline-flex h-11 w-11 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-700 shadow-sm transition-all hover:border-blue-300 hover:text-blue-600"
+        className="relative inline-flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-700 shadow-sm transition-all hover:border-blue-300 hover:text-blue-600"
       >
         <ShoppingCart className="h-5 w-5" />
         {cartCount > 0 && (

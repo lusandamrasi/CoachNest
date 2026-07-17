@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { ChevronLeft, ChevronRight, Search, SlidersHorizontal, X } from 'lucide-react'
 import CoachCard, { type Coach } from '@/components/booking/CoachCard'
-import Navbar from '@/components/layout/Navbar'
 
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
 const DAY_HEADERS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
@@ -227,7 +226,6 @@ export default function BrowseByDatePage() {
 
     return (
         <div className="max-w-7xl mx-auto px-4 py-8 space-y-6">
-            <Navbar />
             {/* Header */}
             <div>
                 <h1 className="text-2xl font-bold text-gray-900">Find a Coach</h1>

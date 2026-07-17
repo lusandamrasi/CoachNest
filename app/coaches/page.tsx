@@ -1,6 +1,4 @@
 import { createClient } from '@/lib/supabase/server'
-import Navbar from '@/components/layout/Navbar'
-import Footer from '@/components/layout/Footer'
 import FiltersSidebar from '@/components/coaches/FiltersSidebar'
 import CoachesResults, { type CoachCardData } from '@/components/coaches/CoachesResults'
 
@@ -116,8 +114,7 @@ export default async function CoachesListingPage({
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navbar />
-      <main className="mx-auto max-w-7xl px-4 pb-16 pt-24 sm:px-6 lg:px-8">
+      <main className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
         <div className="mb-6">
           <h1 className="text-3xl font-bold text-gray-900">Find a coach</h1>
           <p className="mt-1 text-sm text-gray-500">
@@ -147,7 +144,6 @@ export default async function CoachesListingPage({
           />
         </div>
       </main>
-      <Footer />
     </div>
   )
 }

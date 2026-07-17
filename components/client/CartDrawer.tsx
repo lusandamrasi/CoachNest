@@ -113,11 +113,21 @@ export default function CartDrawer({ open, onClose }: CartDrawerProps) {
                 <ShoppingCart className="h-8 w-8 text-gray-400" />
               </div>
               <p className="text-base font-semibold text-gray-800">
-                No confirmed bookings to pay for yet.
+                Your cart is empty
               </p>
               <p className="mt-2 text-sm text-gray-500">
-                Bookings will appear here once a coach accepts your request.
+                Confirmed sessions awaiting payment will appear here once a coach accepts your request.
               </p>
+              <button
+                type="button"
+                onClick={() => {
+                  onClose()
+                  router.push('/coaches')
+                }}
+                className="mt-6 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-700"
+              >
+                Find Coaches
+              </button>
             </div>
           ) : (
             <ul className="divide-y divide-gray-100">

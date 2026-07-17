@@ -1,7 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { CalendarDays, ClipboardList, UserPen, ShieldCheck } from 'lucide-react'
-import DashboardNav from '@/components/layout/DashboardNav'
 import Card from '@/components/ui/Card'
 import Link from 'next/link'
 import BookingCalendar from '@/components/coach/BookingCalender'
@@ -77,13 +76,6 @@ export default async function CoachDashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <DashboardNav
-        fullName={profile?.full_name ?? null}
-        avatarUrl={profile?.avatar_url ?? null}
-        profileHref="/dashboard/coach/profile"
-        dashboardHref="/dashboard/coach"
-      />
-
       <main className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8 space-y-10">
         <div className="mb-6">
           <p className="text-sm font-medium text-blue-600">Coach Dashboard</p>
