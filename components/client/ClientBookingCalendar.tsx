@@ -3,6 +3,8 @@
 import { useState } from 'react'
 import { ChevronLeft, ChevronRight, Clock, AlertCircle, Check, MapPin, StickyNote } from 'lucide-react'
 import Link from 'next/link'
+import PaystackPop from '@paystack/inline-js'
+import Button from '../ui/Button'
 
 type Booking = {
     id: string
@@ -48,7 +50,49 @@ function toDateString(date: Date) {
     return date.toISOString().split('T')[0]
 }
 
-export default function ClientBookingCalendar({ bookings }: { bookings: Booking[] }) {
+const handlePay = (booking: Booking) => {
+        const rate = booking.coach_profiles?.hourly_rate ?? 0
+
+        const [sh, sm] = booking.start_time.split(':').map(Number)
+        const [eh, em] = booking.end_time.split(':').map(Number)
+        const hrs = ((eh * 60 + em) - (sh * 60 + sm)) / 60
+        const amountRands = rate * hrs
+        const amountKobo = Math.round(amountRands * 100) // Paystack uses kobo (cents)
+
+        const paystack = new PaystackPop()
+        paystack.newTransaction({
+            key: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY!,
+            email: userEmail!,
+            amount: amountKobo,
+            currency: 'ZAR',
+            metadata: {
+                booking_id: booking.id,
+                coach_name: booking.coach_profiles?.profiles?.full_name ?? '',
+            },
+            onSuccess: async (transaction: { reference: string }) => {
+                // Verify and mark as paid via API route
+                const res = await fetch('/api/payments/verify', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        reference: transaction.reference,
+                        bookingId: booking.id,
+                    }),
+                })
+
+                if (res.ok) {
+                    setBookings((prev) =>
+                        prev.map((b) => b.id === booking.id ? { ...b, paid: true } : b)
+                    )
+                }
+            },
+            onCancel: () => {
+                console.log('Payment cancelled')
+            },
+        })
+    }
+
+export default function ClientBookingCalendar({ UserEmail, bookings }: { UserEmail: string, bookings: Booking[] }) {
     const today = new Date()
     today.setHours(0, 0, 0, 0)
 
@@ -323,12 +367,12 @@ export default function ClientBookingCalendar({ bookings }: { bookings: Booking[
 
                                                 {/* Pay button */}
                                                 {!booking.paid && !isPast && (
-                                                    <Link
-                                                        href={`/payment/${booking.id}`}
+                                                    <Button
+                                                        onClick={handlePay}
                                                         className="flex items-center justify-center gap-1.5 w-full py-1.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold transition-colors"
                                                     >
                                                         Pay now
-                                                    </Link>
+                                                    </Button>
                                                 )}
                                             </div>
                                         )

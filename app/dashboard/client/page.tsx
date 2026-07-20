@@ -5,6 +5,7 @@ import Card from '@/components/ui/Card'
 import Link from 'next/link'
 import ClientBookingCalendar from '@/components/client/ClientBookingCalendar'
 import Greeting from '@/components/ui/Greeting'
+import CartButton from '@/components/client/CartButton'
 
 export const metadata = { title: 'Client Dashboard — CoachNest' }
 
@@ -46,30 +47,43 @@ const PLACEHOLDER_CARDS = [
 export default async function ClientDashboard() {
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
+  const [UserEmail, setUserEmail] = useState<string | null>
 
   if (!user) redirect('/auth/login')
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('full_name, role, avatar_url')
-    .eq('id', user.id)
-    .single()
 
-  if (profile?.role === 'coach') redirect('/dashboard/coach')
-  
-  const { data: bookings } = await supabase
-    .from('bookings')
-    .select(`
-    id, date, start_time, end_time, status, paid, notes,
-    coach_profiles (
-      sport, hourly_rate, location,
-      profiles ( full_name, avatar_url )
-    )
-  `)
-    .eq('student_id', user.id)
-    .eq('status', 'confirmed')
-    .order('date', { ascending: true })
+  useEffect(() => {
+          async function load() {
+              const { data: { user } } = await supabase.auth.getUser()
+              if (!user) return router.push('/auth/login')
+              
+              setUserEmail(user.email ?? null)
 
+              const { data: profile } = await supabase
+                .from('profiles')
+                .select('full_name, role, avatar_url')
+                .eq('id', user.id)
+                .single()
+
+              if (profile?.role === 'coach') redirect('/dashboard/coach')
+
+              const { data: bookings } = await supabase
+                .from('bookings')
+                .select(`
+                      id, date, start_time, end_time, status, paid, notes,
+                      coach_profiles (
+                        sport, hourly_rate, location,
+                        profiles ( full_name, avatar_url )
+                      )
+                    `)
+                .eq('student_id', user.id)
+                .eq('status', 'confirmed')
+                .order('date', { ascending: true })
+
+                }
+        load()
+    }, [])
+              
   return (
     <div className="min-h-screen bg-gray-50">
       <main className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
@@ -101,7 +115,7 @@ export default async function ClientDashboard() {
             </Link>
           ))}
         </div>
-        <ClientBookingCalendar bookings={(bookings ?? []) as unknown as Parameters<typeof ClientBookingCalendar>[0]['bookings']} />
+        <ClientBookingCalendar UserEmail={UserEmail} bookings={(bookings ?? []) as unknown as Parameters<typeof ClientBookingCalendar>[0]['bookings']} />
       </main>
       
 
