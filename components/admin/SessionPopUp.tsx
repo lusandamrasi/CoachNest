@@ -1,6 +1,6 @@
 'use client'
 
-import { X, Calendar, Clock, Dumbbell, Banknote } from 'lucide-react'
+import { Star, X, User, Calendar, Clock, Check, Dumbbell, Banknote } from 'lucide-react'
 
 type Session = {
     id: string
@@ -8,6 +8,9 @@ type Session = {
     start_time: string
     end_time: string
     status: string
+    coaches_report: string | null
+    student_attended: boolean | null
+    rating: number | null
     coach_profiles: {
         hourly_rate: number | null
         profiles: { full_name: string | null; avatar_url: string | null }
@@ -120,7 +123,7 @@ export default function SessionPopup({
                                 {/* VS divider */}
                                 <div className="flex flex-col items-center gap-1">
                                     <div className="w-px h-6 bg-gray-200" />
-                                    <span className="text-xs font-semibold text-gray-300">vs</span>
+                                    <span className="text-xs font-semibold text-gray-300">with</span>
                                     <div className="w-px h-6 bg-gray-200" />
                                 </div>
 
@@ -175,6 +178,69 @@ export default function SessionPopup({
                                 </div>
                             </div>
                         </div>
+                        {/* Divider */}
+                        {(session.student_attended !== null || session.rating !== null || session.coaches_report) && (
+                            <div className="rounded-xl border border-gray-100 bg-gray-50 divide-y divide-gray-100 mt-2">
+
+                                {/* Attendance */}
+                                {session.student_attended !== null && (
+                                    <div className="flex items-center gap-3 px-4 py-3">
+                                        <User className="w-4 h-4 text-gray-400 shrink-0" />
+                                        <div>
+                                            <p className="text-xs text-gray-400">Student Attended</p>
+                                            <div className="flex items-center gap-1.5 mt-0.5">
+                                                {session.student_attended ? (
+                                                    <span className="flex items-center gap-1 text-sm font-medium text-green-600">
+                                                        <Check className="w-3.5 h-3.5" /> Yes, attended
+                                                    </span>
+                                                ) : (
+                                                    <span className="flex items-center gap-1 text-sm font-medium text-red-500">
+                                                        <X className="w-3.5 h-3.5" /> No-show
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Rating */}
+                                {session.rating !== null && (
+                                    <div className="flex items-center gap-3 px-4 py-3">
+                                        <Star className="w-4 h-4 text-gray-400 shrink-0" />
+                                        <div>
+                                            <p className="text-xs text-gray-400">Client Rating</p>
+                                            <div className="flex items-center gap-1 mt-0.5">
+                                                {Array.from({ length: 5 }).map((_, i) => (
+                                                    <Star
+                                                        key={i}
+                                                        className={`w-4 h-4 ${i < (session.rating ?? 0)
+                                                                ? 'text-amber-400 fill-amber-400'
+                                                                : 'text-gray-200 fill-gray-200'
+                                                            }`}
+                                                    />
+                                                ))}
+                                                <span className="text-sm font-medium text-gray-600 ml-1">
+                                                    {session.rating}/5
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Coach report */}
+                                {session.coaches_report && (
+                                    <div className="flex items-start gap-3 px-4 py-3">
+                                        <Dumbbell className="w-4 h-4 text-gray-400 shrink-0 mt-0.5" />
+                                        <div>
+                                            <p className="text-xs text-gray-400">Coach's Report</p>
+                                            <p className="text-sm text-gray-700 leading-relaxed mt-0.5 whitespace-pre-line">
+                                                {session.coaches_report}
+                                            </p>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>

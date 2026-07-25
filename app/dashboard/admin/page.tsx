@@ -39,6 +39,7 @@ export default async function AdminDashboardPage() {
     .from('bookings')
     .select(`
     id, date, start_time, end_time, status,
+    coaches_report, student_attended, rating,
     coach_profiles (
       hourly_rate,
       profiles ( full_name, avatar_url )

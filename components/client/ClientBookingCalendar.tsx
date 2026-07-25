@@ -1,10 +1,10 @@
 'use client'
 
-import { useState } from 'react'
-import { ChevronLeft, ChevronRight, Clock, AlertCircle, Check, MapPin, StickyNote } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import { createClient } from '@/lib/supabase/client'
+import { ChevronLeft, ChevronRight, Clock, AlertCircle, Check } from 'lucide-react'
 import Link from 'next/link'
-import PaystackPop from '@paystack/inline-js'
-import Button from '../ui/Button'
 
 type Booking = {
     id: string
@@ -13,11 +13,9 @@ type Booking = {
     end_time: string
     status: string
     paid: boolean
-    notes: string | null
     coach_profiles: {
         sport: string
         hourly_rate: number | null
-        location: string | null
         profiles: {
             full_name: string | null
             avatar_url: string | null
@@ -41,8 +39,8 @@ function formatTime(time: string) {
 }
 
 function formatDateLong(dateStr: string) {
-    return new Date(dateStr + 'T00:00:00').toLocaleDateString('en-US', {
-        weekday: 'long', month: 'long', day: 'numeric',
+    return new Date(dateStr + 'T00:00:00').toLocaleDateString('en-ZA', {
+        weekday: 'long', month: 'long', day: 'numeric', timeZone: 'Africa/Johannesburg',
     })
 }
 
@@ -50,55 +48,42 @@ function toDateString(date: Date) {
     return date.toISOString().split('T')[0]
 }
 
-const handlePay = (booking: Booking) => {
-        const rate = booking.coach_profiles?.hourly_rate ?? 0
+export default function ClientBookingCalendar() {
+    const router = useRouter()
+    const supabase = createClient()
 
-        const [sh, sm] = booking.start_time.split(':').map(Number)
-        const [eh, em] = booking.end_time.split(':').map(Number)
-        const hrs = ((eh * 60 + em) - (sh * 60 + sm)) / 60
-        const amountRands = rate * hrs
-        const amountKobo = Math.round(amountRands * 100) // Paystack uses kobo (cents)
-
-        const paystack = new PaystackPop()
-        paystack.newTransaction({
-            key: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY!,
-            email: userEmail!,
-            amount: amountKobo,
-            currency: 'ZAR',
-            metadata: {
-                booking_id: booking.id,
-                coach_name: booking.coach_profiles?.profiles?.full_name ?? '',
-            },
-            onSuccess: async (transaction: { reference: string }) => {
-                // Verify and mark as paid via API route
-                const res = await fetch('/api/payments/verify', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        reference: transaction.reference,
-                        bookingId: booking.id,
-                    }),
-                })
-
-                if (res.ok) {
-                    setBookings((prev) =>
-                        prev.map((b) => b.id === booking.id ? { ...b, paid: true } : b)
-                    )
-                }
-            },
-            onCancel: () => {
-                console.log('Payment cancelled')
-            },
-        })
-    }
-
-export default function ClientBookingCalendar({ UserEmail, bookings }: { UserEmail: string, bookings: Booking[] }) {
     const today = new Date()
     today.setHours(0, 0, 0, 0)
 
+    const [bookings, setBookings] = useState<Booking[]>([])
+    const [loading, setLoading] = useState(true)
     const [viewYear, setViewYear] = useState(today.getFullYear())
     const [viewMonth, setViewMonth] = useState(today.getMonth())
     const [selectedDate, setSelectedDate] = useState<string | null>(null)
+
+    useEffect(() => {
+        async function load() {
+            const { data: { user } } = await supabase.auth.getUser()
+            if (!user) return router.push('/auth/login')
+
+            const { data } = await supabase
+                .from('bookings')
+                .select(`
+          id, date, start_time, end_time, status, paid,
+          coach_profiles (
+            sport, hourly_rate,
+            profiles ( full_name, avatar_url )
+          )
+        `)
+                .eq('student_id', user.id)
+                .in('status', ['confirmed', 'review', 'completed-unpaid', 'completed'])
+                .order('date', { ascending: true })
+
+            if (data) setBookings(data as unknown as Booking[])
+            setLoading(false)
+        }
+        load()
+    }, [])
 
     const prevMonth = () => {
         if (viewMonth === 0) { setViewMonth(11); setViewYear(y => y - 1) }
@@ -136,11 +121,20 @@ export default function ClientBookingCalendar({ UserEmail, bookings }: { UserEma
         (b) => !b.paid && new Date(b.date + 'T00:00:00') >= today
     )
 
+    if (loading) {
+        return (
+            <div className="space-y-4 animate-pulse">
+                <div className="h-6 w-48 bg-gray-100 rounded-xl" />
+                <div className="h-80 bg-gray-100 rounded-2xl" />
+            </div>
+        )
+    }
+
     return (
         <div className="space-y-4">
             <div className="flex items-start justify-between">
                 <div>
-                    <h2 className="text-xl font-bold text-gray-900">My Bookings</h2>
+                    <h2 className="text-xl font-bold text-gray-900">My Sessions</h2>
                     <p className="text-sm text-gray-400 mt-0.5">Your confirmed coaching sessions.</p>
                 </div>
                 {unpaidUpcoming.length > 0 && (
@@ -220,9 +214,7 @@ export default function ClientBookingCalendar({ UserEmail, bookings }: { UserEma
                                     className={`
                     relative mx-auto flex flex-col items-center justify-center w-10 h-10 rounded-xl text-sm font-medium transition-all
                     ${isSelected
-                                            ? hasUnpaid
-                                                ? 'bg-amber-500 text-white shadow-md'
-                                                : 'bg-blue-600 text-white shadow-md'
+                                            ? hasUnpaid ? 'bg-amber-500 text-white shadow-md' : 'bg-blue-600 text-white shadow-md'
                                             : hasUnpaid && !isPast
                                                 ? 'bg-amber-50 text-amber-700 hover:bg-amber-100 cursor-pointer'
                                                 : allPaid
@@ -242,10 +234,8 @@ export default function ClientBookingCalendar({ UserEmail, bookings }: { UserEma
                                             {Array.from({ length: Math.min(dayBookings.length, 3) }).map((_, i) => (
                                                 <span
                                                     key={i}
-                                                    className={`w-1 h-1 rounded-full ${isSelected
-                                                            ? 'bg-white/70'
-                                                            : hasUnpaid && !isPast
-                                                                ? 'bg-amber-400'
+                                                    className={`w-1 h-1 rounded-full ${isSelected ? 'bg-white/70'
+                                                            : hasUnpaid && !isPast ? 'bg-amber-400'
                                                                 : 'bg-green-400'
                                                         }`}
                                                 />
@@ -302,21 +292,18 @@ export default function ClientBookingCalendar({ UserEmail, bookings }: { UserEma
                                                 {/* Coach */}
                                                 <div className="flex items-center justify-between gap-2">
                                                     <div className="flex items-center gap-2">
-                                                        <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 font-bold text-xs flex items-center justify-center border border-blue-100 shrink-0">
+                                                        <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 font-bold text-xs flex items-center justify-center border border-blue-100 shrink-0 overflow-hidden">
                                                             {profile?.avatar_url
                                                                 ? <img src={profile.avatar_url} alt="" className="w-full h-full object-cover rounded-lg" />
                                                                 : getInitials(profile?.full_name ?? null)
                                                             }
                                                         </div>
                                                         <div>
-                                                            <p className="text-sm font-semibold text-gray-800">
-                                                                {profile?.full_name ?? 'Coach'}
-                                                            </p>
+                                                            <p className="text-sm font-semibold text-gray-800">{profile?.full_name ?? 'Coach'}</p>
                                                             <p className="text-xs text-gray-400">{coach?.sport}</p>
                                                         </div>
                                                     </div>
 
-                                                    {/* Paid badge */}
                                                     {booking.paid ? (
                                                         <span className="flex items-center gap-1 text-xs font-medium text-green-600 bg-green-50 border border-green-100 px-2 py-0.5 rounded-full">
                                                             <Check className="w-3 h-3" /> Paid
@@ -334,14 +321,6 @@ export default function ClientBookingCalendar({ UserEmail, bookings }: { UserEma
                                                     {formatTime(booking.start_time)} – {formatTime(booking.end_time)}
                                                 </div>
 
-                                                {/* Location */}
-                                                {coach?.location && (
-                                                    <div className="flex items-center gap-1.5 text-sm text-gray-600">
-                                                        <MapPin className="w-3.5 h-3.5 text-gray-400" />
-                                                        {coach.location}
-                                                    </div>
-                                                )}
-
                                                 {/* Duration + rate */}
                                                 <div className="flex items-center justify-between text-xs text-gray-400">
                                                     <span>
@@ -357,22 +336,14 @@ export default function ClientBookingCalendar({ UserEmail, bookings }: { UserEma
                                                     )}
                                                 </div>
 
-                                                {/* Note */}
-                                                {booking.notes && (
-                                                    <div className="flex items-start gap-1.5 rounded-lg border border-amber-100 bg-amber-50 px-2.5 py-2 text-xs text-amber-900">
-                                                        <StickyNote className="w-3.5 h-3.5 text-amber-500 mt-0.5 shrink-0" />
-                                                        <span className="whitespace-pre-line">{booking.notes}</span>
-                                                    </div>
-                                                )}
-
-                                                {/* Pay button */}
+                                                {/* Pay button → shopping cart */}
                                                 {!booking.paid && !isPast && (
-                                                    <Button
-                                                        onClick={handlePay}
+                                                    <Link
+                                                        href={`/checkout?bookingId=${booking.id}`}
                                                         className="flex items-center justify-center gap-1.5 w-full py-1.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold transition-colors"
                                                     >
                                                         Pay now
-                                                    </Button>
+                                                    </Link>
                                                 )}
                                             </div>
                                         )

@@ -1,7 +1,11 @@
-import ContactForm from '@/components/contact/ContactForm'
-import { FileText, AlertTriangle, LifeBuoy, Star } from 'lucide-react'
+'use client'
 
-export const metadata = { title: 'Contact Us — CoachNest' }
+import ContactForm from '@/components/contact/ContactForm'
+import ReportModal from '@/components/contact/ReportModal'
+import { FileText, AlertTriangle, LifeBuoy, Star } from 'lucide-react'
+import { useState } from 'react'
+
+//export const metadata = { title: 'Contact Us — CoachNest' }
 
 const PLACEHOLDERS = [
   {
@@ -35,8 +39,11 @@ const PLACEHOLDERS = [
 ]
 
 export default function ContactPage() {
+  const [reportOpen, setReportOpen] = useState(false)
+
   return (
     <>
+      <ReportModal open={reportOpen} onClose={() => setReportOpen(false)} />
       <main className="min-h-screen bg-gray-50 pt-10 pb-16">
         <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
           <div className="mb-10 text-center">
@@ -63,6 +70,24 @@ export default function ContactPage() {
               <div className="grid gap-4 sm:grid-cols-2">
                 {PLACEHOLDERS.map((tile) => {
                   const Icon = tile.icon
+
+                  if (tile.title === 'Report a Problem') {
+                    return (
+                      <button
+                        key={tile.title}
+                        type="button"
+                        onClick={() => setReportOpen(true)}
+                        className="group flex h-full cursor-pointer flex-col rounded-2xl border border-gray-200 bg-white p-5 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md"
+                      >
+                        <div className={`mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl ${tile.color}`}>
+                          <Icon className="h-6 w-6" />
+                        </div>
+                        <h2 className="text-lg font-semibold text-gray-900">{tile.title}</h2>
+                        <p className="mt-1 text-sm text-gray-500">{tile.description}</p>
+                      </button>
+                    )
+                  }
+
                   return (
                     <button
                       key={tile.title}
