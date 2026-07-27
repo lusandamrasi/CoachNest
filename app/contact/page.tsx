@@ -71,6 +71,28 @@ export default function ContactPage() {
                 {PLACEHOLDERS.map((tile) => {
                   const Icon = tile.icon
 
+                  if (tile.title === 'Terms & Conditions') {
+                    return (
+                      <a
+                        key={tile.title}
+                        href="/legal/CoachNestTermsAndConditions.zip"
+                        download
+                        className="group flex h-full cursor-pointer flex-col rounded-2xl border border-gray-200 bg-white p-5 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md"
+                      >
+                        <div className={`mb-3 inline-flex h-10 w-10 items-center justify-center rounded-xl ${tile.color}`}>
+                          <Icon className="h-5 w-5" />
+                        </div>
+                        <h3 className="text-base font-semibold text-gray-900">{tile.title}</h3>
+                        <p className="mt-1 text-sm text-gray-500">{tile.description}</p>
+                        <div className="mt-4 flex items-center justify-between">
+                          <span className="text-sm font-medium text-blue-600 group-hover:underline">
+                            {tile.cta} →
+                          </span>
+                        </div>
+                      </a>
+                    )
+                  }
+
                   if (tile.title === 'Report a Problem') {
                     return (
                       <button

@@ -57,6 +57,16 @@ const columns: { heading: string; links: { label: string; href: string }[] }[] =
       { label: 'Contact', href: '/contact' },
     ],
   },
+  {
+    heading: 'Legal',
+    links: [
+      { label: 'Terms of service', href: '/legal/CN-LEGAL-001_terms_of_service.pdf' },
+      { label: 'Privacy policy', href: '/legal/CN-LEGAL-002_privacy_policy.pdf' },
+      { label: 'Coach agreement', href: '/legal/CN-LEGAL-003_coach_agreement.pdf' },
+      { label: 'Client terms', href: '/legal/CN-LEGAL-004_client_terms.pdf' },
+      { label: 'Refund policy', href: '/legal/CN-LEGAL-005_refund_policy.pdf' },
+    ],
+  },
 ]
 
 export default function Footer() {
@@ -64,19 +74,30 @@ export default function Footer() {
     <footer className="bg-[#141416] text-white">
       <div className="mx-auto max-w-7xl px-4 pb-8 pt-14 sm:px-6 lg:px-8">
         {/* Link columns */}
-        <div className="grid grid-cols-2 gap-x-8 gap-y-10 sm:grid-cols-4">
+        <div className="grid grid-cols-2 gap-x-8 gap-y-10 sm:grid-cols-4 lg:grid-cols-5">
           {columns.map((col) => (
             <div key={col.heading}>
               <h3 className="text-lg font-bold sm:text-xl">{col.heading}</h3>
               <ul className="mt-6 space-y-3.5">
                 {col.links.map((link) => (
                   <li key={link.label}>
-                    <Link
-                      href={link.href}
-                      className="text-sm font-semibold text-white/90 transition-colors hover:text-white hover:underline"
-                    >
-                      {link.label}
-                    </Link>
+                    {link.href.endsWith('.pdf') ? (
+                      <a
+                        href={link.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm font-semibold text-white/90 transition-colors hover:text-white hover:underline"
+                      >
+                        {link.label}
+                      </a>
+                    ) : (
+                      <Link
+                        href={link.href}
+                        className="text-sm font-semibold text-white/90 transition-colors hover:text-white hover:underline"
+                      >
+                        {link.label}
+                      </Link>
+                    )}
                   </li>
                 ))}
               </ul>

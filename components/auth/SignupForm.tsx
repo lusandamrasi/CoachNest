@@ -15,11 +15,13 @@ export default function SignupForm() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [role, setRole] = useState<UserRole>('client')
+  const [agreedToTerms, setAgreedToTerms] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [serverError, setServerError] = useState('')
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
+    if (!agreedToTerms) return
     setErrors({})
     setServerError('')
 
@@ -155,7 +157,26 @@ export default function SignupForm() {
         error={errors.confirm_password}
       />
 
-      <Button type="submit" loading={loading} className="w-full" size="lg">
+      <label className="flex items-start gap-3 text-sm text-gray-600">
+        <input
+          type="checkbox"
+          checked={agreedToTerms}
+          onChange={(e) => setAgreedToTerms(e.target.checked)}
+          className="mt-0.5 h-4 w-4 cursor-pointer rounded border-gray-300 text-blue-600 focus:ring-blue-600"
+        />
+        <span>
+          Agree to{' '}
+          <a
+            href="/legal/CoachNestTermsAndConditions.zip"
+            download
+            className="font-medium text-blue-600 hover:underline"
+          >
+            Terms and Conditions
+          </a>
+        </span>
+      </label>
+
+      <Button type="submit" loading={loading} disabled={!agreedToTerms} className="w-full" size="lg">
         Create Account
       </Button>
 
