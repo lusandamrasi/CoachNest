@@ -232,7 +232,7 @@ export default function SessionPopup({
                                     <div className="flex items-start gap-3 px-4 py-3">
                                         <Dumbbell className="w-4 h-4 text-gray-400 shrink-0 mt-0.5" />
                                         <div>
-                                            <p className="text-xs text-gray-400">Coach's Report</p>
+                                            <p className="text-xs text-gray-400">Coach&apos;s Report</p>
                                             <p className="text-sm text-gray-700 leading-relaxed mt-0.5 whitespace-pre-line">
                                                 {session.coaches_report}
                                             </p>

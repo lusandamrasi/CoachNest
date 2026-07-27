@@ -65,7 +65,7 @@ export default function ReportForm({ onSuccess }: { onSuccess?: () => void }) {
 
         const { data: { user } } = await supabase.auth.getUser()
 
-        const payload: Record<string, any> = {
+        const payload: Record<string, string | null> = {
             reason: form.reason,
             details: form.details || null,
             status: 'open',
@@ -118,7 +118,7 @@ export default function ReportForm({ onSuccess }: { onSuccess?: () => void }) {
             <div>
                 <h1 className="text-2xl font-bold text-gray-900">Report a Problem</h1>
                 <p className="text-sm text-gray-400 mt-1">
-                    Let us know about any issues, concerns, or problems you've encountered.
+                    Let us know about any issues, concerns, or problems you&apos;ve encountered.
                 </p>
             </div>
 
@@ -128,7 +128,7 @@ export default function ReportForm({ onSuccess }: { onSuccess?: () => void }) {
                     <div>
                         <p className="text-sm font-medium text-gray-700">Submit anonymously</p>
                         <p className="text-xs text-gray-400 mt-0.5">
-                            Your identity won't be attached to this report.
+                            Your identity won&apos;t be attached to this report.
                         </p>
                     </div>
                     <button

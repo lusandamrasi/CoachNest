@@ -35,6 +35,9 @@ type Session = {
     start_time: string
     end_time: string
     status: 'completed' | 'completed-unpaid'
+    coaches_report: string | null
+    student_attended: boolean | null
+    rating: number | null
     coach_profiles: {
         hourly_rate: number | null
         profiles: { full_name: string | null; avatar_url: string | null }
