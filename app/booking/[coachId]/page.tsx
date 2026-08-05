@@ -415,7 +415,7 @@ export default function CoachBookingPage() {
                                 <div className="rounded-xl bg-blue-50 border border-blue-100 px-4 py-3 text-sm text-blue-700">
                                     <span className="font-semibold">Summary: </span>
                                     {formatDateLong(selectedDate)} · {formatTime(selectedSlot.start_time)} – {formatTime(selectedSlot.end_time)}
-                                    {coach.hourly_rate != null && <span className="ml-2 text-blue-500">· R{coach.hourly_rate}</span>}
+                                        {coach.hourly_rate != null && <span className="ml-2 text-blue-500">· R{coach.hourly_rate != null ? (coach.hourly_rate * ((new Date(`${selectedDate.toISOString().split('T')[0]}T${selectedSlot.end_time}`).getTime() - new Date(`${selectedDate.toISOString().split('T')[0]}T${selectedSlot.start_time}`).getTime()) / (1000 * 60 * 60))).toFixed(2) : 'N/A'}</span>}
                                 </div>
 
                                 {!booked && (

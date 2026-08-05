@@ -1,10 +1,10 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import Link from 'next/link'
 import { ArrowLeft, Check, ShieldCheck, ShoppingBag } from 'lucide-react'
 import { useCart } from '@/lib/hooks/useCart'
-import PaystackPop  from '@paystack/inline-js'
+import PaystackPop from '@paystack/inline-js'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 
@@ -26,13 +26,24 @@ function sessionAmount(item: { date: string; start_time: string; end_time: strin
 
 export default function CheckoutContent() {
   const router = useRouter()
-  const { cartItems, cartCount, cartTotal, isLoading } = useCart()
+  const { cartItems, cartCount, isLoading } = useCart()
   const [toast, setToast] = useState<string | null>(null)
 
   const [userEmail, setUserEmail] = useState<string | null>(null)
   const [userName, setUserName] = useState<string | null>(null)
   const [userId, setUserId] = useState<string | null>(null)
   const supabase = createClient()
+
+  // Dynamically calculate the cart total
+  const cartTotal = useMemo(() => {
+    return cartItems.reduce((sum, item) => {
+      const sessionStart = new Date(`${item.date}T${item.start_time}`)
+      const sessionEnd = new Date(`${item.date}T${item.end_time}`)
+      const sessionLengthHours = (sessionEnd.getTime() - sessionStart.getTime()) / (1000 * 60 * 60) // Calculate session length in hours
+      const coachRate = item.coach_profiles?.hourly_rate ?? 0
+      return sum + coachRate * sessionLengthHours // Multiply rate by session length
+    }, 0)
+  }, [cartItems])
 
   useEffect(() => {
     async function loadUser() {
@@ -123,6 +134,50 @@ export default function CheckoutContent() {
         </p>
       </div>
 
+      {!isLoading && cartCount > 0 && (
+        <>
+          {/* Session Breakdown */}
+          <div className="mb-6 rounded-2xl border border-gray-200 bg-white shadow-sm">
+            <div className="border-b border-gray-100 px-6 py-4">
+              <h2 className="text-sm font-semibold text-gray-700">Session Breakdown</h2>
+            </div>
+            <ul className="divide-y divide-gray-100">
+              {cartItems.map((item) => {
+                const coach = item.coach_profiles
+                const profile = coach?.profiles
+                const rate = coach?.hourly_rate ?? 0
+                const sessionStart = new Date(`${item.date}T${item.start_time}`)
+                const sessionEnd = new Date(`${item.date}T${item.end_time}`)
+                const sessionLengthHours = (sessionEnd.getTime() - sessionStart.getTime()) / (1000 * 60 * 60) // Calculate session length in hours
+                const totalCost = rate * sessionLengthHours
+
+                return (
+                  <li key={item.id} className="flex flex-wrap items-center justify-between gap-3 px-6 py-4">
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-semibold text-gray-900">
+                        {profile?.full_name ?? 'Coach'}
+                      </p>
+                      {coach?.sport && (
+                        <span className="mt-1 inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-medium text-blue-600">
+                          {coach.sport}
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-right text-xs text-gray-500 sm:text-sm">
+                      <p>{formatDate(item.date)}</p>
+                      <p>{formatTime(item.start_time)}–{formatTime(item.end_time)}</p>
+                    </div>
+                    <div className="ml-4 min-w-[70px] text-right text-sm font-bold text-gray-900">
+                      R{totalCost.toFixed(2)}
+                    </div>
+                  </li>
+                )
+              })}
+            </ul>
+          </div>
+        </>
+      )}
+
       {isLoading ? (
         <div className="space-y-3">
           {Array.from({ length: 2 }).map((_, i) => (
@@ -147,41 +202,6 @@ export default function CheckoutContent() {
         </div>
       ) : (
         <>
-          {/* Breakdown card */}
-          <div className="mb-6 rounded-2xl border border-gray-200 bg-white shadow-sm">
-            <div className="border-b border-gray-100 px-6 py-4">
-              <h2 className="text-sm font-semibold text-gray-700">Session breakdown</h2>
-            </div>
-            <ul className="divide-y divide-gray-100">
-              {cartItems.map((item) => {
-                const coach = item.coach_profiles
-                const profile = coach?.profiles
-                const rate = coach?.hourly_rate ?? 0
-                return (
-                  <li key={item.id} className="flex flex-wrap items-center justify-between gap-3 px-6 py-4">
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-semibold text-gray-900">
-                        {profile?.full_name ?? 'Coach'}
-                      </p>
-                      {coach?.sport && (
-                        <span className="mt-1 inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-medium text-blue-600">
-                          {coach.sport}
-                        </span>
-                      )}
-                    </div>
-                    <div className="text-right text-xs text-gray-500 sm:text-sm">
-                      <p>{formatDate(item.date)}</p>
-                      <p>{formatTime(item.start_time)}–{formatTime(item.end_time)}</p>
-                    </div>
-                    <div className="ml-4 min-w-[70px] text-right text-sm font-bold text-gray-900">
-                      R{rate}
-                    </div>
-                  </li>
-                )
-              })}
-            </ul>
-          </div>
-
           {/* Totals card */}
           <div className="mb-6 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
             <dl className="space-y-2 text-sm">
@@ -191,7 +211,7 @@ export default function CheckoutContent() {
               </div>
               <div className="flex justify-between text-gray-600">
                 <dt>Subtotal</dt>
-                <dd>R{cartTotal}</dd>
+                <dd>R{cartTotal.toFixed(2)}</dd>
               </div>
               <div className="flex justify-between text-gray-600">
                 <dt>Platform fee</dt>
@@ -200,7 +220,7 @@ export default function CheckoutContent() {
               <div className="my-2 border-t border-gray-100" />
               <div className="flex justify-between text-base font-bold text-gray-900">
                 <dt>Total</dt>
-                <dd>R{cartTotal}</dd>
+                <dd>R{cartTotal.toFixed(2)}</dd>
               </div>
             </dl>
           </div>
@@ -216,13 +236,6 @@ export default function CheckoutContent() {
           <p className="mt-3 text-center text-xs text-gray-400">
             Secure payment via <span className="font-semibold text-gray-500">Paystack</span>
           </p>
-
-          <div className="mt-8 flex items-start gap-2 rounded-xl bg-gray-50 px-4 py-3 text-xs text-gray-500">
-            <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-gray-400" />
-            <p>
-              Your booking is confirmed regardless of payment status.
-            </p>
-          </div>
         </>
       )}
     </div>
