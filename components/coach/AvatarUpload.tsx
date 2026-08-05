@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
 import { Camera } from 'lucide-react'
 import Button from '@/components/ui/Button'
+import AvatarCropModal from '@/components/ui/AvatarCropModal'
 
 const ACCEPTED = ['image/jpeg', 'image/png', 'image/webp']
 const MAX_BYTES = 2 * 1024 * 1024 // 2 MB
@@ -18,6 +19,7 @@ export default function AvatarUpload({ fullName, currentUrl, onFileSelected }: A
   const inputRef = useRef<HTMLInputElement>(null)
   const [preview, setPreview] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [cropSrc, setCropSrc] = useState<string | null>(null)
 
   useEffect(() => {
     return () => {
@@ -32,7 +34,6 @@ export default function AvatarUpload({ fullName, currentUrl, onFileSelected }: A
     setError(null)
     const file = e.target.files?.[0] ?? null
     if (!file) {
-      setPreview(null)
       onFileSelected(null)
       return
     }
@@ -50,10 +51,21 @@ export default function AvatarUpload({ fullName, currentUrl, onFileSelected }: A
       return
     }
 
+    setCropSrc(URL.createObjectURL(file))
+    e.target.value = ''
+  }
+
+  function handleCropped(blob: Blob) {
     if (preview) URL.revokeObjectURL(preview)
-    const url = URL.createObjectURL(file)
+    const croppedFile = new File([blob], 'avatar.jpg', { type: blob.type })
+    const url = URL.createObjectURL(croppedFile)
     setPreview(url)
-    onFileSelected(file)
+    onFileSelected(croppedFile)
+  }
+
+  function handleCropClose() {
+    if (cropSrc) URL.revokeObjectURL(cropSrc)
+    setCropSrc(null)
   }
 
   return (
@@ -96,6 +108,13 @@ export default function AvatarUpload({ fullName, currentUrl, onFileSelected }: A
         accept={ACCEPTED.join(',')}
         onChange={handleFile}
         className="hidden"
+      />
+
+      <AvatarCropModal
+        imageSrc={cropSrc}
+        isOpen={!!cropSrc}
+        onClose={handleCropClose}
+        onCropped={handleCropped}
       />
     </div>
   )

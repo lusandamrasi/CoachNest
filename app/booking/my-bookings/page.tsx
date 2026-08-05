@@ -50,7 +50,7 @@ function isUpcoming(dateStr: string) {
 
 const STATUS_CONFIG = {
     pending: {
-        label: 'Pending',
+        label: 'Pending Confirmation',
         icon: AlertCircle,
         className: 'bg-amber-50 text-amber-600 border-amber-100',
         iconClass: 'text-amber-400',
@@ -87,22 +87,48 @@ const STATUS_CONFIG = {
     },
 }
 
-function BookingCard({ booking, onPay }: { booking: Booking; onPay: (booking: Booking) => void }) {
+function BookingCard({
+    booking,
+    onCancel,
+    canceling,
+}: {
+    booking: Booking
+    onCancel: (booking: Booking) => void
+    canceling: boolean
+}) {
     const coach = booking.coach_profiles
     const profile = coach?.profiles
-    const status = STATUS_CONFIG[booking.status]
+    const isPendingPayment = booking.status === 'confirmed' && !booking.paid
+    const isPaidConfirmed = booking.status === 'confirmed' && booking.paid === true
+    const status = isPendingPayment
+        ? {
+            label: 'Payment Pending',
+            icon: AlertCircle,
+            className: 'bg-amber-50 text-amber-600 border-amber-100',
+            iconClass: 'text-amber-400',
+        }
+        : isPaidConfirmed
+            ? {
+                label: 'Paid',
+                icon: Check,
+                className: 'bg-green-50 text-green-600 border-green-100',
+                iconClass: 'text-green-400',
+            }
+            : STATUS_CONFIG[booking.status]
     const StatusIcon = status.icon
     const upcoming = isUpcoming(booking.date)
 
     return (
         <div className={`bg-white rounded-2xl border shadow-sm overflow-hidden transition-all ${booking.status === 'cancelled' ? 'opacity-60 border-gray-100' : 'border-gray-100'
             }`}>
-            
-            <div className={`h-1.5 w-full ${booking.status === 'confirmed'
-                    ? 'bg-gradient-to-r from-green-400 to-green-500'
-                    : booking.status === 'cancelled'
-                        ? 'bg-gray-200'
-                        : 'bg-gradient-to-r from-amber-400 to-amber-500'
+
+            <div className={`h-1.5 w-full ${isPendingPayment
+                    ? 'bg-gradient-to-r from-amber-400 to-amber-500'
+                    : isPaidConfirmed
+                        ? 'bg-gradient-to-r from-green-400 to-green-500'
+                        : booking.status === 'cancelled'
+                            ? 'bg-gray-200'
+                            : 'bg-gradient-to-r from-amber-400 to-amber-500'
                 }`} />
 
             <div className="p-5 flex gap-4">
@@ -130,18 +156,6 @@ function BookingCard({ booking, onPay }: { booking: Booking; onPay: (booking: Bo
                                 <StatusIcon className={`w-3 h-3 ${status.iconClass}`} />
                                 {status.label}
                             </div>
-                            {booking.status === 'confirmed' && !booking.paid && (
-                                <span className="flex items-center gap-1 text-xs font-medium text-amber-600 bg-amber-50 border border-amber-100 px-2 py-0.5 rounded-full">
-                                    <AlertCircle className="w-3 h-3 text-amber-400" />
-                                    Unpaid
-                                </span>
-                            )}
-                            {booking.status === 'confirmed' && booking.paid === true && (
-                                <span className="flex items-center gap-1 text-xs font-medium text-green-600 bg-green-50 border border-green-100 px-2 py-0.5 rounded-full">
-                                    <Check className="w-3 h-3 text-green-400" />
-                                    Paid
-                                </span>
-                            )}
                         </div>
                     </div>
 
@@ -173,11 +187,11 @@ function BookingCard({ booking, onPay }: { booking: Booking; onPay: (booking: Bo
 
                         {booking.status === 'confirmed' && upcoming && !booking.paid && (
                             <button
-                                onClick={() => onPay(booking)}
-                                className="flex items-center gap-1.5 px-4 py-1.5 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-xl transition-colors"
+                                onClick={() => onCancel(booking)}
+                                disabled={canceling}
+                                className="flex items-center gap-1.5 px-4 py-1.5 bg-white hover:bg-red-50 disabled:opacity-50 text-red-500 border border-red-200 text-sm font-semibold rounded-xl transition-colors"
                             >
-                                Pay now
-                                <ChevronRight className="w-3.5 h-3.5" />
+                                {canceling ? '…' : 'Cancel'}
                             </button>
                         )}
                     </div>
@@ -196,15 +210,13 @@ export default function MyBookingsPage() {
     const [bookings, setBookings] = useState<Booking[]>([])
     const [loading, setLoading] = useState(true)
     const [filter, setFilter] = useState<Filter>('upcoming')
-    const [userEmail, setUserEmail] = useState<string | null>(null)
+    const [cancelingId, setCancelingId] = useState<string | null>(null)
 
 
     useEffect(() => {
         async function load() {
             const { data: { user } } = await supabase.auth.getUser()
             if (!user) return router.push('/auth/login')
-            
-            setUserEmail(user.email ?? null)
 
             const { data } = await supabase
                 .from('bookings')
@@ -224,65 +236,57 @@ export default function MyBookingsPage() {
         load()
     }, [])
 
-    const handlePay = async (booking: Booking) => {
-        const rate = booking.coach_profiles?.hourly_rate ?? 0
+    const handleCancelBooking = async (booking: Booking) => {
+        if (!window.confirm('Cancel this session? This cannot be undone.')) return
 
-        const [sh, sm] = booking.start_time.split(':').map(Number)
-        const [eh, em] = booking.end_time.split(':').map(Number)
-        const hrs = ((eh * 60 + em) - (sh * 60 + sm)) / 60
-        const amountRands = rate * hrs
-        const amountKobo = Math.round(amountRands * 100) // Paystack uses kobo (cents)
+        setCancelingId(booking.id)
+        try {
+            const res = await fetch('/api/bookings/cancel', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ bookingId: booking.id }),
+            })
 
-        // Imported lazily: the library touches `window` at import time, which breaks prerendering
-        const PaystackPop = (await import('@paystack/inline-js')).default
-        const paystack = new PaystackPop()
-        paystack.newTransaction({
-            key: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY!,
-            email: userEmail!,
-            amount: amountKobo,
-            currency: 'ZAR',
-            metadata: {
-                booking_id: booking.id,
-                coach_name: booking.coach_profiles?.profiles?.full_name ?? '',
-            },
-            onSuccess: async (transaction: { reference: string }) => {
-                // Verify and mark as paid via API route
-                const res = await fetch('/api/payments/verify', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        reference: transaction.reference,
-                        bookingId: booking.id,
-                    }),
-                })
-
-                if (res.ok) {
-                    setBookings((prev) =>
-                        prev.map((b) => b.id === booking.id ? { ...b, paid: true } : b)
-                    )
-                }
-            },
-            onCancel: () => {
-                console.log('Payment cancelled')
-            },
-        })
+            if (res.ok) {
+                setBookings((prev) =>
+                    prev.map((b) => b.id === booking.id ? { ...b, status: 'cancelled' } : b)
+                )
+            }
+        } finally {
+            setCancelingId(null)
+        }
     }
 
-    const FILTERS: { key: Filter; label: string }[] = [
+    // Mirrors useCart.ts's definition of "in the cart": confirmed, unpaid, upcoming.
+    const cartMatchingCount = bookings.filter(
+        (b) => b.status === 'confirmed' && !b.paid && isUpcoming(b.date)
+    ).length
+
+    const FILTERS: { key: Filter; label: string; count?: number }[] = [
         { key: 'upcoming', label: 'Upcoming' },
-        { key: 'all', label: 'All' },
-        { key: 'pending', label: 'Pending' },
-        { key: 'confirmed', label: 'Confirmed' },
+        { key: 'pending', label: 'Pending Confirmation' },
+        { key: 'confirmed', label: 'Confirmed', count: cartMatchingCount },
         { key: 'cancelled', label: 'Cancelled' },
+        { key: 'all', label: 'All' },
     ]
 
-    const filtered = bookings.filter((b) => {
-        if (filter === 'upcoming') return isUpcoming(b.date) && b.status !== 'cancelled'
-        if (filter === 'pending') return b.status === 'pending'
-        if (filter === 'confirmed') return b.status === 'confirmed'
-        if (filter === 'cancelled') return b.status === 'cancelled'
-        return true
-    })
+    const filtered = bookings
+        .filter((b) => {
+            if (filter === 'upcoming') return isUpcoming(b.date) && b.status === 'confirmed' && b.paid === true
+            if (filter === 'pending') return b.status === 'pending' && isUpcoming(b.date)
+            if (filter === 'confirmed') return b.status === 'confirmed' && isUpcoming(b.date)
+            if (filter === 'cancelled') return b.status === 'cancelled'
+            return true
+        })
+        .sort((a, b) => {
+            // Within "Confirmed", unpaid (payment pending) sessions surface first.
+            if (filter === 'confirmed') {
+                const aPending = a.paid ? 0 : 1
+                const bPending = b.paid ? 0 : 1
+                if (aPending !== bPending) return bPending - aPending
+            }
+            return 0
+        })
 
     const pendingCount = bookings.filter((b) => b.status === 'pending' && isUpcoming(b.date)).length
 
@@ -305,16 +309,22 @@ export default function MyBookingsPage() {
 
             {/* Filter tabs */}
             <div className="flex gap-2 overflow-x-auto pb-1">
-                {FILTERS.map(({ key, label }) => (
+                {FILTERS.map(({ key, label, count }) => (
                     <button
                         key={key}
                         onClick={() => setFilter(key)}
-                        className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${filter === key
+                        className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${filter === key
                                 ? 'bg-blue-600 text-white'
                                 : 'bg-white border border-gray-200 text-gray-500 hover:border-blue-300 hover:text-blue-600'
                             }`}
                     >
                         {label}
+                        {count != null && count > 0 && (
+                            <span className={`text-xs px-1.5 py-0.5 rounded-full font-semibold ${filter === key ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-500'
+                                }`}>
+                                {count}
+                            </span>
+                        )}
                     </button>
                 ))}
             </div>
@@ -344,7 +354,12 @@ export default function MyBookingsPage() {
             ) : (
                 <div className="space-y-4">
                     {filtered.map((booking) => (
-                        <BookingCard key={booking.id} booking={booking} onPay={handlePay} />
+                        <BookingCard
+                            key={booking.id}
+                            booking={booking}
+                            onCancel={handleCancelBooking}
+                            canceling={cancelingId === booking.id}
+                        />
                     ))}
                 </div>
             )}

@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import ProfileForm, { type SessionPackage } from '@/components/coach/ProfileForm'
+import DeleteAccountSection from '@/components/settings/DeleteAccountSection'
 
 export const metadata = { title: 'Edit Profile — CoachNest' }
 
@@ -17,16 +18,23 @@ export default async function EditProfilePage() {
 
   if (profile?.role !== 'coach') redirect('/dashboard/client')
 
-  const { data: coach } = await supabase
-    .from('coach_profiles')
-    .select(`
-      sport, bio, hourly_rate, location, location_lat, location_lng,
-      years_experience, intro_video_url,
-      age_groups_coached, experience_levels, coaching_types, languages_spoken,
-      session_packages, travel_radius_km, coaching_photos, email, phone_number
-    `)
-    .eq('id', user.id)
-    .single()
+  const [{ data: coach }, { data: banking }] = await Promise.all([
+    supabase
+      .from('coach_profiles')
+      .select(`
+        sport, bio, hourly_rate, location, location_lat, location_lng,
+        years_experience, intro_video_url,
+        age_groups_coached, experience_levels, coaching_types, languages_spoken,
+        session_packages, travel_radius_km, coaching_photos, email, phone_number
+      `)
+      .eq('id', user.id)
+      .single(),
+    supabase
+      .from('coach_banking_details')
+      .select('bank_name, branch_code, account_type, account_number, account_holder_name')
+      .eq('coach_id', user.id)
+      .maybeSingle(),
+  ])
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -61,8 +69,13 @@ export default async function EditProfilePage() {
             coaching_photos: coach?.coaching_photos ?? [],
             email: coach?.email ?? user.email ?? null,
             phone_number: coach?.phone_number ?? null,
+            banking: banking ?? null,
           }}
         />
+
+        <div className="mt-10">
+          <DeleteAccountSection />
+        </div>
       </main>
     </div>
   )

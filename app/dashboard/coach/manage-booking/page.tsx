@@ -15,6 +15,7 @@ type Booking = {
     end_time: string
     status: 'pending' | 'confirmed' | 'cancelled' | 'review' | 'completed-unpaid' | 'completed'
     notes: string | null
+    paid: boolean | null
     profiles: {
         full_name: string | null
         avatar_url: string | null
@@ -166,11 +167,21 @@ function PendingCard({
     )
 }
 
-function BookingCard({ booking }: { booking: Booking }) {
+function BookingCard({
+    booking,
+    onCancel,
+    canceling,
+}: {
+    booking: Booking
+    onCancel: (booking: Booking) => void
+    canceling: boolean
+}) {
     const profile = booking.profiles
     const upcoming = isUpcoming(booking.date)
     // A request the coach never responded to before its date came and went
     const isExpired = booking.status === 'pending' && !upcoming
+    const isPendingPayment = booking.status === 'confirmed' && !booking.paid
+    const isPaidConfirmed = booking.status === 'confirmed' && booking.paid === true
     const status = isExpired
         ? {
             label: 'Expired',
@@ -178,16 +189,32 @@ function BookingCard({ booking }: { booking: Booking }) {
             className: 'bg-gray-100 text-gray-500 border-gray-200 italic',
             iconClass: 'text-gray-400',
         }
-        : STATUS_CONFIG[booking.status]
+        : isPendingPayment
+            ? {
+                label: 'Payment Pending',
+                icon: AlertCircle,
+                className: 'bg-amber-50 text-amber-600 border-amber-100',
+                iconClass: 'text-amber-400',
+            }
+            : isPaidConfirmed
+                ? {
+                    label: 'Paid',
+                    icon: Check,
+                    className: 'bg-green-50 text-green-600 border-green-100',
+                    iconClass: 'text-green-400',
+                }
+                : STATUS_CONFIG[booking.status]
     const StatusIcon = status.icon
 
     return (
         <div className={`bg-white rounded-2xl border shadow-sm overflow-hidden ${booking.status === 'cancelled' ? 'opacity-60 border-gray-100' : 'border-gray-100'
             }`}>
-            
-            <div className={`h-1.5 w-full ${booking.status === 'confirmed'
-                    ? 'bg-gradient-to-r from-green-400 to-green-500'
-                    : 'bg-gray-200'
+
+            <div className={`h-1.5 w-full ${isPendingPayment
+                    ? 'bg-gradient-to-r from-amber-400 to-amber-500'
+                    : isPaidConfirmed
+                        ? 'bg-gradient-to-r from-green-400 to-green-500'
+                        : 'bg-gray-200'
                 }`} />
             <div className="p-5 flex gap-4">
                 <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 font-bold text-base flex items-center justify-center shrink-0 border border-blue-100">
@@ -206,9 +233,11 @@ function BookingCard({ booking }: { booking: Booking }) {
                                 {upcoming ? 'Upcoming session' : 'Past session'}
                             </div>
                         </div>
-                        <div className={`flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full border ${status.className}`}>
-                            <StatusIcon className={`w-3 h-3 ${status.iconClass}`} />
-                            {status.label}
+                        <div className="flex flex-wrap items-center justify-end gap-1.5">
+                            <div className={`flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full border ${status.className}`}>
+                                <StatusIcon className={`w-3 h-3 ${status.iconClass}`} />
+                                {status.label}
+                            </div>
                         </div>
                     </div>
 
@@ -222,6 +251,18 @@ function BookingCard({ booking }: { booking: Booking }) {
                             {formatTime(booking.start_time)} – {formatTime(booking.end_time)}
                         </div>
                     </div>
+
+                    {booking.status === 'confirmed' && upcoming && !booking.paid && (
+                        <div className="flex justify-end pt-1">
+                            <button
+                                onClick={() => onCancel(booking)}
+                                disabled={canceling}
+                                className="flex items-center gap-1.5 px-4 py-1.5 bg-white hover:bg-red-50 disabled:opacity-50 text-red-500 border border-red-200 text-sm font-semibold rounded-xl transition-colors"
+                            >
+                                {canceling ? '…' : 'Cancel session'}
+                            </button>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>
@@ -442,7 +483,7 @@ function ReviewCard({ booking }: { booking: Booking }) {
     )
 }
 
-type Tab = 'requests' | 'upcoming' | 'review' | 'past'
+type Tab = 'requests' | 'upcoming' | 'review' | 'past' | 'cancelled'
 
 export default function CoachBookingsPage() {
     const router = useRouter()
@@ -453,6 +494,7 @@ export default function CoachBookingsPage() {
     const [tab, setTab] = useState<Tab>('requests')
     const [acting, setActing] = useState<string | null>(null)
     const [error, setError] = useState('')
+    const [cancelingId, setCancelingId] = useState<string | null>(null)
 
     useEffect(() => {
         // Check for confirmed sessions that have now passed and move them to 'review'
@@ -494,7 +536,7 @@ export default function CoachBookingsPage() {
             const { data } = await supabase
                 .from('bookings')
                 .select(`
-                    id, student_id, date, start_time, end_time, status,
+                    id, student_id, date, start_time, end_time, status, paid,
                     profiles!bookings_student_id_fkey ( full_name, avatar_url )
                 `)
                 .eq('coach_id', user.id)
@@ -528,6 +570,31 @@ export default function CoachBookingsPage() {
         setActing(null)
     }
 
+    const handleCancelBooking = async (booking: Booking) => {
+        if (!window.confirm('Cancel this session? This cannot be undone.')) return
+
+        setCancelingId(booking.id)
+        setError('')
+
+        try {
+            const res = await fetch('/api/bookings/cancel', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ bookingId: booking.id }),
+            })
+
+            if (res.ok) {
+                setBookings((prev) =>
+                    prev.map((b) => b.id === booking.id ? { ...b, status: 'cancelled' } : b)
+                )
+            } else {
+                setError('Failed to cancel booking. Please try again.')
+            }
+        } finally {
+            setCancelingId(null)
+        }
+    }
+
     const pending = bookings.filter((b) => b.status === 'pending' && isUpcoming(b.date))
     const review_bookings = bookings.filter((b) => b.status === 'review')
     const upcoming = bookings.filter((b) =>
@@ -538,6 +605,7 @@ export default function CoachBookingsPage() {
         b.status === 'completed' ||
         ((b.status === 'confirmed' || b.status === 'pending') && !isUpcoming(b.date))
     )
+    const cancelled = bookings.filter((b) => b.status === 'cancelled')
 
 
     const TABS: { key: Tab; label: string; count?: number }[] = [
@@ -545,14 +613,16 @@ export default function CoachBookingsPage() {
         { key: 'upcoming', label: 'Upcoming', count: upcoming.length },
         { key: 'review' as Tab, label: 'To Review', count: review_bookings.length },
         { key: 'past', label: 'Past' },
-        
+        { key: 'cancelled', label: 'Cancelled' },
+
     ]
 
     const activeList =
         tab === 'requests' ? pending :
             tab === 'review' ? review_bookings :
                 tab === 'upcoming' ? upcoming :
-                    past
+                    tab === 'cancelled' ? cancelled :
+                        past
 
     return (
         <div className="min-h-screen bg-gray-50">
@@ -605,13 +675,15 @@ export default function CoachBookingsPage() {
                             {tab === 'requests' ? 'No pending requests' :
                                 tab === 'upcoming' ? 'No upcoming sessions' :
                                     tab === 'review' ? 'No sessions to review' :
-                                        'No past sessions'}
+                                        tab === 'cancelled' ? 'No cancelled sessions' :
+                                            'No past sessions'}
                         </p>
                         <p className="text-sm text-gray-400">
                             {tab === 'requests' ? 'New booking requests will appear here.' :
                                 tab === 'upcoming' ? 'Accepted bookings will show up here.' :
                                     tab === 'review' ? 'Sessions ready for review will appear here.' :
-                                        'Completed sessions will appear here.'}
+                                        tab === 'cancelled' ? 'Sessions you or a client cancel will appear here.' :
+                                            'Completed sessions will appear here.'}
                         </p>
                     </div>
                 ) : (
@@ -631,7 +703,12 @@ export default function CoachBookingsPage() {
                                     <ReviewCard key={b.id} booking={b} />
                                 ))
                                 : activeList.map((b) => (
-                                    <BookingCard key={b.id} booking={b} />
+                                    <BookingCard
+                                        key={b.id}
+                                        booking={b}
+                                        onCancel={handleCancelBooking}
+                                        canceling={cancelingId === b.id}
+                                    />
                                 ))
                         }
                     </div>

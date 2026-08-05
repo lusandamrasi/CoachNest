@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import ClientProfileForm from '@/components/client/ClientProfileForm'
+import DeleteAccountSection from '@/components/settings/DeleteAccountSection'
 
 export const metadata = { title: 'Edit Profile — CoachNest' }
 
@@ -59,6 +60,10 @@ export default async function EditClientProfilePage() {
             phone_number: client?.phone_number ?? null,
           }}
         />
+
+        <div className="mt-10">
+          <DeleteAccountSection />
+        </div>
       </main>
     </div>
   )

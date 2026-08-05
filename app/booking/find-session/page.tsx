@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { ChevronLeft, ChevronRight, Search, SlidersHorizontal, X } from 'lucide-react'
-import CoachCard, { type Coach } from '@/components/booking/CoachCard'
+import CoachCard, { type CoachCardData } from '@/components/coaches/CoachCard'
 
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
 const DAY_HEADERS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
@@ -130,7 +130,7 @@ export default function BrowseByDatePage() {
     const [viewYear, setViewYear] = useState(today.getFullYear())
     const [viewMonth, setViewMonth] = useState(today.getMonth())
     const [selectedDate, setSelectedDate] = useState<Date | null>(null)
-    const [coaches, setCoaches] = useState<Coach[]>([])
+    const [coaches, setCoaches] = useState<CoachCardData[]>([])
     const [loading, setLoading] = useState(false)
     const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS)
     const [showFilters, setShowFilters] = useState(false)
@@ -170,8 +170,9 @@ export default function BrowseByDatePage() {
         let query = supabase
             .from('coach_profiles')
             .select(`
-        id, sport, bio, hourly_rate, location, years_experience, intro_video_url,
-        profiles ( full_name, avatar_url )
+        id, sport, hourly_rate, location, years_experience, verification_status, created_at,
+        profiles ( full_name, avatar_url ),
+        reviews ( rating )
       `)
             .eq('is_published', true)
             .in('id', coachIds)
@@ -190,7 +191,7 @@ export default function BrowseByDatePage() {
         }
 
         const { data } = await query.order('hourly_rate', { ascending: true })
-        setCoaches((data as unknown as Coach[]) ?? [])
+        setCoaches((data as unknown as CoachCardData[]) ?? [])
         setLoading(false)
     }, [filters])
 
@@ -415,7 +416,7 @@ export default function BrowseByDatePage() {
                                 <CoachCard
                                     key={coach.id}
                                     coach={coach}
-                                    onBook={(id) => router.push(`/booking/${id}`)}
+                                    action={{ label: 'Select', onClick: (id) => router.push(`/booking/${id}`) }}
                                 />
                             ))}
                         </div>

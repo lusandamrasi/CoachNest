@@ -9,6 +9,7 @@ export type CartItem = {
   start_time: string
   end_time: string
   coach_profiles: {
+    id: string
     sport: string | null
     hourly_rate: number | null
     profiles: {
@@ -57,7 +58,7 @@ export function useCart() {
       .select(`
         id, date, start_time, end_time,
         coach_profiles (
-          sport, hourly_rate,
+          id, sport, hourly_rate,
           profiles ( full_name, avatar_url )
         )
       `)

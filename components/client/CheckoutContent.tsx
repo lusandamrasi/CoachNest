@@ -17,22 +17,40 @@ function formatDate(dateStr: string) {
   return d.toLocaleDateString('en-GB', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' })
 }
 
+function sessionAmount(item: { date: string; start_time: string; end_time: string; coach_profiles: { hourly_rate: number | null } | null }) {
+  const start = new Date(`${item.date}T${item.start_time}`)
+  const end = new Date(`${item.date}T${item.end_time}`)
+  const hours = (end.getTime() - start.getTime()) / (1000 * 60 * 60)
+  return (item.coach_profiles?.hourly_rate ?? 0) * hours
+}
+
 export default function CheckoutContent() {
   const router = useRouter()
   const { cartItems, cartCount, cartTotal, isLoading } = useCart()
   const [toast, setToast] = useState<string | null>(null)
 
   const [userEmail, setUserEmail] = useState<string | null>(null)
+  const [userName, setUserName] = useState<string | null>(null)
+  const [userId, setUserId] = useState<string | null>(null)
   const supabase = createClient()
 
   useEffect(() => {
     async function loadUser() {
       const { data: { user } } = await supabase.auth.getUser()
-      if (user) setUserEmail(user.email ?? null)
+      if (!user) return
+      setUserEmail(user.email ?? null)
+      setUserId(user.id)
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('full_name')
+        .eq('id', user.id)
+        .single()
+      setUserName(profile?.full_name ?? null)
     }
     loadUser()
   }, [])
-  
+
   function handlePay() {
     if (!userEmail || cartItems.length === 0) return
 
@@ -43,14 +61,16 @@ export default function CheckoutContent() {
       amount: Math.round(cartTotal * 100),
       currency: 'ZAR',
       metadata: {
+        client_id: userId,
+        client_name: userName ?? 'there',
         cartItems: cartItems.map((item) => ({
           booking_id: item.id,
-          coach_id: item.coach_profiles?.id,
-          coach_name: item.coach_profiles?.profiles?.full_name ?? '',
-          date: item.date,
-          start_time: item.start_time,
-          end_time: item.end_time,
-          rate: item.coach_profiles?.hourly_rate,
+          coach_id: item.coach_profiles?.id ?? '',
+          coach_name: item.coach_profiles?.profiles?.full_name ?? 'your coach',
+          sport: item.coach_profiles?.sport ?? null,
+          session_date: formatDate(item.date),
+          session_time: `${formatTime(item.start_time)} – ${formatTime(item.end_time)}`,
+          amount: sessionAmount(item),
         })),
       },
       onSuccess: async (transaction: { reference: string }) => {

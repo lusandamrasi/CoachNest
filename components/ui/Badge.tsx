@@ -1,13 +1,15 @@
 import { HTMLAttributes } from 'react'
 
 interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
-  variant?: 'blue' | 'green' | 'gray'
+  variant?: 'blue' | 'green' | 'gray' | 'orange' | 'gold'
 }
 
 const variantClasses = {
   blue: 'bg-blue-100 text-blue-700',
   green: 'bg-green-100 text-green-700',
   gray: 'bg-gray-100 text-gray-600',
+  orange: 'bg-orange-100 text-orange-600',
+  gold: 'bg-amber-100 text-amber-800 ring-1 ring-amber-300',
 }
 
 export default function Badge({ variant = 'blue', className = '', children, ...props }: BadgeProps) {

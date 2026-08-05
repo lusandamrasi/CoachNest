@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>About — CoachNest</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy: #0B2C4F;
+    --navy-light: #143A63;
+    --navy-tint: #E8EEF4;
+    --orange: #F9951D;
+    --orange-dark: #DD8110;
+    --orange-tint: #FEF2E2;
+    --text-body: #4B5A6B;
+    --border: #E3E9F0;
+    --bg-soft: #F6F8FB;
+    --radius-lg: 20px;
+    --radius-md: 14px;
+  }
+  *{ box-sizing: border-box; }
+  body{
+    margin:0;
+    font-family: 'Inter', sans-serif;
+    color: var(--navy);
+    background: #ffffff;
+    line-height: 1.65;
+  }
+  h1,h2,h3{
+    font-family: 'Poppins', sans-serif;
+    color: var(--navy);
+    margin: 0;
+  }
+  p{ margin: 0 0 1rem; color: var(--text-body); }
+  a{ text-decoration:none; }
+  .wrap{ max-width: 1120px; margin: 0 auto; padding: 0 24px; }
+
+  /* NAV */
+  .nav{
+    display:flex; align-items:center; justify-content:space-between;
+    padding: 20px 0; border-bottom: 1px solid var(--border);
+  }
+  .nav .wrap{ display:flex; align-items:center; justify-content:space-between; width:100%; }
+  .logo{ display:flex; align-items:center; gap:8px; font-family:'Poppins',sans-serif; font-weight:700; font-size:20px; color: var(--navy); }
+  .logo span{ color: var(--orange); }
+  .nav-links{ display:flex; gap:32px; font-size:15px; font-weight:500; }
+  .nav-links a{ color: var(--navy); opacity:0.75; }
+  .nav-links a.active{ opacity:1; color: var(--orange); }
+
+  /* HERO */
+  .hero{
+    text-align:center;
+    padding: 88px 24px 72px;
+    background: linear-gradient(180deg, var(--navy-tint) 0%, #ffffff 100%);
+  }
+  .eyebrow{
+    display:inline-block; background: var(--orange-tint); color: var(--orange-dark);
+    font-size:13px; font-weight:600; padding:6px 16px; border-radius:999px; margin-bottom:20px;
+    letter-spacing:0.02em;
+  }
+  .hero h1{ font-size:44px; font-weight:800; line-height:1.15; max-width:760px; margin:0 auto 20px; }
+  .hero h1 .accent{ color: var(--orange); }
+  .hero p.sub{ font-size:18px; max-width:640px; margin:0 auto 32px; }
+  .cta-row{ display:flex; gap:16px; justify-content:center; flex-wrap:wrap; }
+  .btn{
+    display:inline-block; padding:14px 28px; border-radius:10px; font-weight:600; font-size:15px;
+    font-family:'Inter',sans-serif; border: 2px solid transparent; cursor:pointer;
+  }
+  .btn-primary{ background: var(--navy); color:#fff; }
+  .btn-outline{ background:#fff; color:var(--navy); border-color: var(--navy); }
+  .trust-line{ margin-top:20px; font-size:13px; color:var(--text-body); }
+
+  /* SECTION SHELL */
+  .section{ padding: 72px 24px; }
+  .section-soft{ background: var(--bg-soft); }
+  .section-head{ text-align:center; max-width:640px; margin: 0 auto 48px; }
+  .section-head h2{ font-size:32px; font-weight:700; margin-bottom:12px; }
+  .section-head p{ font-size:16px; margin:0; }
+
+  /* STORY SECTION */
+  .story{ display:grid; grid-template-columns: 1.1fr 0.9fr; gap: 56px; align-items:center; }
+  .story h2{ font-size:32px; font-weight:700; margin-bottom:18px; }
+  .story p{ font-size:16px; }
+
+  /* SIGNATURE: COACH PROFILE CARD MOCKUP */
+  .mock-frame{
+    background: var(--navy); border-radius: var(--radius-lg); padding: 28px;
+    position:relative;
+  }
+  .mock-label{ color:#B9C7D6; font-size:12px; font-weight:600; letter-spacing:0.06em; text-transform:uppercase; margin-bottom:14px; }
+  .coach-card{
+    background:#fff; border-radius: var(--radius-md); padding:18px; box-shadow: 0 12px 30px rgba(11,44,79,0.25);
+  }
+  .coach-card-top{ display:flex; gap:14px; align-items:flex-start; margin-bottom:14px; }
+  .avatar{
+    width:56px; height:56px; border-radius:14px; background: var(--orange-tint);
+    display:flex; align-items:center; justify-content:center; font-family:'Poppins',sans-serif;
+    font-weight:700; color: var(--orange-dark); font-size:20px; flex-shrink:0;
+  }
+  .badge{
+    display:inline-block; background: var(--orange-tint); color: var(--orange-dark);
+    font-size:11px; font-weight:600; padding:3px 10px; border-radius:999px; margin-bottom:6px;
+  }
+  .coach-name{ font-family:'Poppins',sans-serif; font-weight:700; font-size:17px; color:var(--navy); margin:0 0 2px; }
+  .coach-meta{ font-size:13px; color: var(--text-body); margin:0; }
+  .coach-rating{ font-size:13px; color:var(--navy); margin:10px 0; font-weight:500; }
+  .coach-rating .stars{ color:var(--orange); }
+  .coach-card-bottom{ display:flex; align-items:center; justify-content:space-between; border-top:1px solid var(--border); padding-top:14px; }
+  .coach-price{ font-family:'Poppins',sans-serif; font-weight:700; font-size:16px; color:var(--navy); }
+  .coach-price span{ font-weight:400; font-size:12px; color:var(--text-body); }
+  .mini-btn{ background:var(--navy); color:#fff; font-size:13px; font-weight:600; padding:8px 16px; border-radius:8px; }
+
+  /* WHY DIFFERENT GRID */
+  .grid-4{ display:grid; grid-template-columns: repeat(4, 1fr); gap:24px; }
+  .feature-card{
+    background:#fff; border:1px solid var(--border); border-radius: var(--radius-md);
+    padding:28px 22px;
+  }
+  .feature-icon{
+    width:44px; height:44px; border-radius:12px; background: var(--navy-tint);
+    display:flex; align-items:center; justify-content:center; margin-bottom:16px;
+    font-family:'Poppins',sans-serif; font-weight:700; color:var(--navy); font-size:18px;
+  }
+  .feature-card h3{ font-size:17px; font-weight:700; margin-bottom:8px; }
+  .feature-card p{ font-size:14px; margin:0; }
+
+  /* VALUES ROW */
+  .values-row{ display:flex; flex-wrap:wrap; gap:12px; justify-content:center; }
+  .value-pill{
+    display:flex; align-items:center; gap:8px; background:#fff; border:1px solid var(--border);
+    border-radius:999px; padding:10px 20px; font-size:14px; font-weight:600; color:var(--navy);
+  }
+  .value-pill .dot{ width:8px; height:8px; border-radius:50%; background: var(--orange); }
+
+  /* CTA BANNER */
+  .cta-banner{
+    background: var(--navy); border-radius: var(--radius-lg); padding: 56px 40px; text-align:center;
+    margin: 0 24px;
+  }
+  .cta-banner h2{ color:#fff; font-size:30px; font-weight:700; margin-bottom:12px; }
+  .cta-banner p{ color:#C7D3DF; font-size:16px; margin-bottom:28px; max-width:520px; margin-left:auto; margin-right:auto; }
+  .cta-banner .btn-primary{ background: var(--orange); }
+  .cta-banner .btn-outline{ background:transparent; color:#fff; border-color:#4E6885; }
+
+  @media (max-width: 860px){
+    .story{ grid-template-columns:1fr; }
+    .grid-4{ grid-template-columns: repeat(2,1fr); }
+    .nav-links{ display:none; }
+    .hero h1{ font-size:32px; }
+  }
+  @media (max-width: 520px){
+    .grid-4{ grid-template-columns: 1fr; }
+    .cta-row{ flex-direction:column; }
+  }
+</style>
+</head>
+<body>
+
+  <nav class="nav">
+    <div class="wrap">
+      <div class="logo">Coach<span>Nest</span></div>
+      <div class="nav-links">
+        <a href="#">Home</a>
+        <a href="#">Find Coaches</a>
+        <a href="#" class="active">About</a>
+        <a href="#">Contact Us</a>
+      </div>
+    </div>
+  </nav>
+
+  <header class="hero">
+    <div class="eyebrow">About CoachNest</div>
+    <h1>Built for coaches. <span class="accent">Trusted</span> by athletes.</h1>
+    <p class="sub">CoachNest gives independent sports coaches and personal trainers a professional business page to showcase their skills and win more clients — and gives athletes, parents, schools, and clubs a simple, trusted way to book them.</p>
+    <div class="cta-row">
+      <a class="btn btn-primary" href="#">Become a Coach — It's Free</a>
+      <a class="btn btn-outline" href="#">Find a Coach</a>
+    </div>
+    <p class="trust-line">Free to get started · No credit card required</p>
+  </header>
+
+  <section class="section">
+    <div class="wrap story">
+      <div>
+        <h2>Every coach deserves a professional page</h2>
+        <p>CoachNest was built on a simple belief: finding a qualified coach should be straightforward, and coaches who pour their time and expertise into their craft deserve a professional presence that helps them win more work — not just a listing buried in a directory.</p>
+        <p>That's why every coach on CoachNest gets their own profile page — a place to showcase qualifications, experience, and reputation the way a real business would, without needing to build a website or manage their own marketing. It's the credibility of a personal business page, combined with the visibility of a marketplace.</p>
+        <p>On the other side, clients get a secure, easy way to find a coach who's the right fit, without the friction and guesswork that usually comes with booking coaching services.</p>
+      </div>
+      <div class="mock-frame">
+        <div class="mock-label">Your CoachNest profile</div>
+        <div class="coach-card">
+          <div class="coach-card-top">
+            <div class="avatar">DP</div>
+            <div>
+              <div class="badge">Top Rated</div>
+              <p class="coach-name">David Passman</p>
+              <p class="coach-meta">Soccer · Cape Town, South Africa</p>
+            </div>
+          </div>
+          <p class="coach-rating"><span class="stars">★★★★★</span> 5.0 · 12 reviews</p>
+          <div class="coach-card-bottom">
+            <div class="coach-price">R200<span> /hr</span></div>
+            <div class="mini-btn">View Profile</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section-soft">
+    <div class="wrap">
+      <div class="section-head">
+        <h2>Why CoachNest is different</h2>
+        <p>We built the platform we wished existed — for coaches first, and for the athletes who rely on them.</p>
+      </div>
+      <div class="grid-4">
+        <div class="feature-card">
+          <div class="feature-icon">01</div>
+          <h3>A real business page</h3>
+          <p>No website to build, no marketing to figure out — just a polished profile built to turn visitors into clients.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">02</div>
+          <h3>More visibility</h3>
+          <p>Coaches are discoverable by clients actively searching for their exact skills — a steady stream of new work.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">03</div>
+          <h3>Keep 100% of your price</h3>
+          <p>Whatever a coach charges, that's what they take home. A small booking fee is shown to the client at checkout.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">04</div>
+          <h3>Secure, simple bookings</h3>
+          <p>Search, book, and pay in one place — no chasing coaches over WhatsApp or awkward cash exchanges.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap">
+      <div class="section-head">
+        <h2>What we stand for</h2>
+      </div>
+      <div class="values-row">
+        <div class="value-pill"><span class="dot"></span>Trust</div>
+        <div class="value-pill"><span class="dot"></span>Integrity</div>
+        <div class="value-pill"><span class="dot"></span>Transparency</div>
+        <div class="value-pill"><span class="dot"></span>Safety</div>
+        <div class="value-pill"><span class="dot"></span>Simplicity</div>
+        <div class="value-pill"><span class="dot"></span>Community</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" style="padding-top:0;">
+    <div class="cta-banner">
+      <h2>Ready to grow your coaching business?</h2>
+      <p>Join CoachNest for free. Build your profile, set your availability, and start earning today.</p>
+      <div class="cta-row">
+        <a class="btn btn-primary" href="#">Join as a Coach — It's Free</a>
+        <a class="btn btn-outline" href="#">Find a Coach</a>
+      </div>
+    </div>
+  </section>
+
+</body>
+</html>

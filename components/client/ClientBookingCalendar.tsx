@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { ChevronLeft, ChevronRight, Clock, AlertCircle, Check } from 'lucide-react'
 import Link from 'next/link'
-import router from 'next/router'
 
 type Booking = {
     id: string

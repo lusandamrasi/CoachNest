@@ -107,6 +107,44 @@ Dashboard routes redirect to `/auth/login` when not authenticated.
 
 ---
 
+## Bookings pages — tabs & tags (for reference)
+
+The booking status model has two independent axes: `status` (`pending` / `confirmed` / `cancelled` / `review` / `completed` / `completed-unpaid`) and `paid` (boolean, whether the client has paid). The tabs and tags below are just different views/labels over those two columns — no new DB fields were added for this.
+
+### Client — `/booking/my-bookings`
+
+Tabs, left to right: **Upcoming, Pending Confirmation, Confirmed, Cancelled, All**
+
+| Tab | Shows | Tag on each card |
+|---|---|---|
+| Upcoming | `status = confirmed`, `paid = true`, date is today or later | — |
+| Pending Confirmation | `status = pending`, date is today or later (past-dated requests are hidden here) | "Pending Confirmation" (amber) |
+| Confirmed | `status = confirmed`, date is today or later — **regardless of paid** | "Payment Pending" (amber) or "Paid" (green). Payment-pending items are sorted first. |
+| Cancelled | `status = cancelled` | "Cancelled" (red) |
+| All | every booking, no date or status filtering (includes past) | whichever tag applies |
+
+Notes:
+- The number badge on the **Confirmed** tab is the count of `confirmed + unpaid + upcoming` bookings — deliberately the same query `lib/hooks/useCart.ts` uses for the cart, so that number always matches the cart icon's badge in the navbar.
+- A confirmed-but-unpaid booking that's now in the past drops out of "Confirmed" and only shows under "All" (still with its "Payment Pending" tag).
+- **Payment only happens through the cart now** — there is no "Pay now" button on individual booking cards anymore (it was removed from every tab, including "All"). Clients pay via the cart icon in the navbar → checkout.
+- "Cancel" button appears on a card when `status = confirmed && paid = false` (upcoming only) — cancelling a paid or already-past booking isn't offered here.
+
+### Coach — `/dashboard/coach/manage-booking`
+
+Tabs: **Requests, Upcoming, To Review, Past, Cancelled**
+
+- Requests = pending bookings awaiting Accept/Decline.
+- Upcoming/Past mirror the client's confirmed/past logic.
+- **Cancelled** is new — shows every booking with `status = cancelled` for that coach (same card styling/behavior as the client's Cancelled tab).
+- Confirmed bookings show the same "Payment Pending" / "Paid" tag as the client side (kept in sync intentionally — same wording, same colors).
+- Coaches get the same "Cancel session" button as clients, for `confirmed && unpaid` upcoming bookings.
+
+### Cancelling a booking
+
+Both the client and coach Cancel buttons call `POST /api/bookings/cancel` (not a direct DB write from the browser). That route re-checks server-side that the booking is `confirmed` and `paid = false` before cancelling, and only allows the request if the caller is the booking's coach or student — so it can't be bypassed by tampering with the UI.
+
+---
+
 ## Project structure
 
 ```

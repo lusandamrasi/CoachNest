@@ -7,10 +7,20 @@ const supabaseAdmin = createClient(
 )
 
 export async function POST(req: NextRequest) {
-    const { reference, bookingId } = await req.json()
+    const body = await req.json()
+    const { reference } = body
 
-    if (!reference || !bookingId) {
-        return NextResponse.json({ error: 'Missing reference or bookingId' }, { status: 400 })
+    // CheckoutContent.tsx pays for a whole cart in one transaction and sends
+    // bookingIds (plural); a single bookingId is also accepted for callers
+    // paying for one booking at a time.
+    const bookingIds: string[] = Array.isArray(body.bookingIds)
+        ? body.bookingIds
+        : body.bookingId
+            ? [body.bookingId]
+            : []
+
+    if (!reference || bookingIds.length === 0) {
+        return NextResponse.json({ error: 'Missing reference or bookingId(s)' }, { status: 400 })
     }
 
     // Verify transaction with Paystack
@@ -29,11 +39,11 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: 'Payment verification failed' }, { status: 400 })
     }
 
-    // Mark booking as paid
+    // Mark booking(s) as paid
     const { error } = await supabaseAdmin
         .from('bookings')
-        .update({ paid: true})
-        .eq('id', bookingId)
+        .update({ paid: true })
+        .in('id', bookingIds)
 
     if (error) {
         return NextResponse.json({ error: error.message }, { status: 500 })

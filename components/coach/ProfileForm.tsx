@@ -3,7 +3,7 @@
 import { useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Check, AlertCircle, Plus, X, UploadCloud } from 'lucide-react'
+import { Check, AlertCircle, Plus, X, UploadCloud, Landmark } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
@@ -13,6 +13,7 @@ import VideoUpload from './VideoUpload'
 import LanguagesSelect from './LanguagesSelect'
 import LocationAutocomplete from './LocationAutocomplete'
 import TravelRadiusMap from './TravelRadiusMap'
+import { SA_BANKS, BANK_ACCOUNT_TYPES } from '@/lib/constants/southAfricanBanks'
 
 export const SPORT_OPTIONS = [
   'Tennis',
@@ -57,6 +58,13 @@ interface ProfileFormProps {
     coaching_photos: string[] | null
     email: string | null
     phone_number: string | null
+    banking: {
+      bank_name: string | null
+      branch_code: string | null
+      account_type: string | null
+      account_number: string | null
+      account_holder_name: string | null
+    } | null
   }
 }
 
@@ -100,6 +108,23 @@ export default function ProfileForm({ userId, initial }: ProfileFormProps) {
 
   const [packages, setPackages] = useState<SessionPackage[]>(initial.session_packages ?? [])
   const [travelRadius, setTravelRadius] = useState<number>(initial.travel_radius_km ?? 0)
+
+  const [bankName, setBankName] = useState<string>(
+    initial.banking?.bank_name && (SA_BANKS as readonly string[]).includes(initial.banking.bank_name)
+      ? initial.banking.bank_name
+      : SA_BANKS[0],
+  )
+  const [branchCode, setBranchCode] = useState(initial.banking?.branch_code ?? '')
+  const [accountType, setAccountType] = useState<string>(
+    initial.banking?.account_type &&
+      (BANK_ACCOUNT_TYPES as readonly string[]).includes(initial.banking.account_type)
+      ? initial.banking.account_type
+      : BANK_ACCOUNT_TYPES[0],
+  )
+  const [accountNumber, setAccountNumber] = useState(initial.banking?.account_number ?? '')
+  const [accountHolderName, setAccountHolderName] = useState(
+    initial.banking?.account_holder_name ?? '',
+  )
 
   const [photos, setPhotos] = useState<string[]>(initial.coaching_photos ?? [])
   const [photoUploading, setPhotoUploading] = useState(false)
@@ -243,6 +268,27 @@ export default function ProfileForm({ userId, initial }: ProfileFormProps) {
         })
         .eq('id', userId)
       if (cErr) throw new Error(`Coach profile update failed: ${cErr.message}`)
+
+      const wantsBankingSave =
+        branchCode.trim() || accountNumber.trim() || accountHolderName.trim()
+
+      if (wantsBankingSave) {
+        if (!accountNumber.trim() || !accountHolderName.trim()) {
+          throw new Error('Please complete all required banking details (account number and name).')
+        }
+        const { error: bErr } = await supabase.from('coach_banking_details').upsert(
+          {
+            coach_id: userId,
+            bank_name: bankName,
+            branch_code: branchCode.trim() || null,
+            account_type: accountType,
+            account_number: accountNumber.trim(),
+            account_holder_name: accountHolderName.trim(),
+          },
+          { onConflict: 'coach_id' },
+        )
+        if (bErr) throw new Error(`Banking details update failed: ${bErr.message}`)
+      }
 
       setAvatarUrl(nextAvatarUrl)
       setAvatarFile(null)
@@ -647,6 +693,86 @@ export default function ProfileForm({ userId, initial }: ProfileFormProps) {
           onChange={handlePhotoFiles}
           className="hidden"
         />
+      </Card>
+
+      {/* Section G — Banking Details */}
+      <Card padding="lg" id="banking-details">
+        <div className="flex items-center gap-2">
+          <Landmark className="h-5 w-5 text-gray-400" />
+          <h2 className="text-lg font-semibold text-gray-900">Banking Details</h2>
+        </div>
+        <p className="mt-1 text-sm text-gray-500">
+          Used to pay you out for completed sessions. Only you can see these details.
+        </p>
+
+        <div className="mt-6 grid gap-5 sm:grid-cols-2">
+          <div className="flex flex-col gap-1">
+            <label htmlFor="bank_name" className="text-sm font-medium text-gray-700">
+              Bank
+            </label>
+            <select
+              id="bank_name"
+              value={bankName}
+              onChange={(e) => setBankName(e.target.value)}
+              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-colors focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
+            >
+              {SA_BANKS.map((b) => (
+                <option key={b} value={b}>
+                  {b}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <label htmlFor="account_type" className="text-sm font-medium text-gray-700">
+              Account type
+            </label>
+            <select
+              id="account_type"
+              value={accountType}
+              onChange={(e) => setAccountType(e.target.value)}
+              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition-colors focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
+            >
+              {BANK_ACCOUNT_TYPES.map((t) => (
+                <option key={t} value={t}>
+                  {t}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <Input
+            id="branch_code"
+            label="Branch code (if applicable)"
+            value={branchCode}
+            onChange={(e) => setBranchCode(e.target.value.replace(/\D/g, ''))}
+            placeholder="632005"
+            inputMode="numeric"
+            pattern="[0-9]*"
+          />
+
+          <Input
+            id="account_number"
+            label="Account number"
+            value={accountNumber}
+            onChange={(e) => setAccountNumber(e.target.value.replace(/\D/g, ''))}
+            placeholder="1234567890"
+            inputMode="numeric"
+            pattern="[0-9]*"
+          />
+
+          <div className="sm:col-span-2">
+            <Input
+              id="account_holder_name"
+              label="Account holder name"
+              value={accountHolderName}
+              onChange={(e) => setAccountHolderName(e.target.value)}
+              placeholder="As it appears on your bank account"
+              autoComplete="name"
+            />
+          </div>
+        </div>
       </Card>
 
       {/* Save */}

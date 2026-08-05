@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import { CalendarDays, ClipboardList, UserPen, ShieldCheck } from 'lucide-react'
+import { CalendarDays, ClipboardList, UserPen, ShieldCheck, Landmark } from 'lucide-react'
 import Card from '@/components/ui/Card'
 import Link from 'next/link'
 import BookingCalendar from '@/components/coach/BookingCalender'
@@ -56,7 +56,7 @@ export default async function CoachDashboard() {
 
   if (profile?.role !== 'coach') redirect('/dashboard/client')
 
-  const [{ data: bookings }, { data: coachRow }] = await Promise.all([
+  const [{ data: bookings }, { data: coachRow }, { data: banking }] = await Promise.all([
     supabase
       .from('bookings')
       .select(`
@@ -71,8 +71,14 @@ export default async function CoachDashboard() {
       .select('location')
       .eq('id', user.id)
       .single(),
+    supabase
+      .from('coach_banking_details')
+      .select('id')
+      .eq('coach_id', user.id)
+      .maybeSingle(),
   ])
   const coachLocation = coachRow?.location ?? null
+  const hasBankingDetails = !!banking
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -84,6 +90,26 @@ export default async function CoachDashboard() {
           </h1>
           <p className="mt-2 text-gray-500">Here&apos;s an overview of your coaching hub.</p>
         </div>
+
+        {!hasBankingDetails && (
+          <div className="flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4">
+            <Landmark className="mt-0.5 h-5 w-5 flex-shrink-0 text-amber-600" />
+            <div className="flex-1">
+              <p className="text-sm font-medium text-amber-800">
+                You haven&apos;t added your banking details yet
+              </p>
+              <p className="mt-0.5 text-sm text-amber-700">
+                Add your payout details so we can pay you for completed sessions.
+              </p>
+            </div>
+            <Link
+              href="/dashboard/coach/edit-profile#banking-details"
+              className="flex-shrink-0 whitespace-nowrap text-sm font-medium text-amber-800 hover:underline"
+            >
+              Add details →
+            </Link>
+          </div>
+        )}
 
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {PLACEHOLDER_CARDS.map((card) => {

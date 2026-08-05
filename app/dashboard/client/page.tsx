@@ -57,6 +57,20 @@ export default async function ClientDashboard() {
 
   if (profile?.role === 'coach') redirect('/dashboard/coach')
   if (profile?.role === 'admin') redirect('/dashboard/admin')
+
+  // Mirrors useCart.ts's definition of "in the cart" exactly, so this
+  // notification count always matches the cart item count.
+  const today = new Date()
+  const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
+
+  const { count: unpaidCount } = await supabase
+    .from('bookings')
+    .select('id', { count: 'exact', head: true })
+    .eq('student_id', user.id)
+    .eq('status', 'confirmed')
+    .eq('paid', false)
+    .gte('date', todayStr)
+
   return (
     <div className="min-h-screen bg-gray-50">
       <main className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
@@ -74,8 +88,13 @@ export default async function ClientDashboard() {
           {PLACEHOLDER_CARDS.map((card) => (
             <Link key={card.title} href={card.href}>
               <Card className="group h-full transition-all hover:-translate-y-0.5 hover:shadow-md">
-                <div className={`mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl ${card.color}`}>
+                <div className={`relative mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl ${card.color}`}>
                   <card.icon className="h-6 w-6" />
+                  {card.href === '/booking/my-bookings' && !!unpaidCount && unpaidCount > 0 && (
+                    <span className="absolute -right-1.5 -top-1.5 inline-flex min-h-[20px] min-w-[20px] items-center justify-center rounded-full bg-red-500 px-1.5 text-[11px] font-bold text-white ring-2 ring-white">
+                      {unpaidCount > 99 ? '99+' : unpaidCount}
+                    </span>
+                  )}
                 </div>
                 <h2 className="text-lg font-semibold text-gray-900">{card.title}</h2>
                 <p className="mt-1 text-sm text-gray-500">{card.description}</p>

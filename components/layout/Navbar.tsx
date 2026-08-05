@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
-import { Menu, X, LogOut } from 'lucide-react'
+import { Menu, X, LogOut, Heart } from 'lucide-react'
 import Button from '@/components/ui/Button'
 import Logo from '@/components/layout/Logo'
 import ThemeToggle from '@/components/layout/ThemeToggle'
@@ -131,6 +131,13 @@ export default function Navbar() {
             <>
               {authUser.role === 'client' && <CartButton />}
               <Link
+                href="/dashboard/favorites"
+                aria-label="Favourites"
+                className="flex h-9 w-9 items-center justify-center rounded-full text-gray-500 transition-colors hover:bg-gray-100 hover:text-red-500"
+              >
+                <Heart className="h-5 w-5" />
+              </Link>
+              <Link
                 href={authUser.profileHref}
                 aria-label="View my profile"
                 className="group flex flex-col items-center focus-visible:outline-none"
@@ -216,6 +223,13 @@ export default function Navbar() {
                   className="text-sm font-medium text-gray-700 hover:text-blue-600"
                 >
                   My Profile
+                </Link>
+                <Link
+                  href="/dashboard/favorites"
+                  onClick={() => setMobileOpen(false)}
+                  className="text-sm font-medium text-gray-700 hover:text-blue-600"
+                >
+                  Favourites
                 </Link>
                 <Button variant="outline" size="sm" className="w-full gap-1.5" onClick={handleSignOut}>
                   <LogOut className="h-4 w-4" />

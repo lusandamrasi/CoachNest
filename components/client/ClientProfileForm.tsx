@@ -11,6 +11,7 @@ import Card from '@/components/ui/Card'
 import LanguagesSelect from '@/components/coach/LanguagesSelect'
 import LocationAutocomplete from '@/components/coach/LocationAutocomplete'
 import TravelRadiusMap from '@/components/coach/TravelRadiusMap'
+import AvatarCropModal from '@/components/ui/AvatarCropModal'
 
 const SPORT_OPTIONS = [
   'Tennis',
@@ -86,6 +87,7 @@ export default function ClientProfileForm({ authEmail, initial }: ClientProfileF
   const [avatarUrl, setAvatarUrl] = useState<string | null>(initial.avatar_url)
   const [avatarFile, setAvatarFile] = useState<File | null>(null)
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
+  const [cropSrc, setCropSrc] = useState<string | null>(null)
 
   const [saving, setSaving] = useState(false)
   const [toast, setToast] = useState<Toast>(null)
@@ -98,8 +100,20 @@ export default function ClientProfileForm({ authEmail, initial }: ClientProfileF
   function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
-    setAvatarFile(file)
-    setAvatarPreview(URL.createObjectURL(file))
+    setCropSrc(URL.createObjectURL(file))
+    e.target.value = ''
+  }
+
+  function handleAvatarCropped(blob: Blob) {
+    if (avatarPreview) URL.revokeObjectURL(avatarPreview)
+    const croppedFile = new File([blob], 'avatar.jpg', { type: blob.type })
+    setAvatarFile(croppedFile)
+    setAvatarPreview(URL.createObjectURL(croppedFile))
+  }
+
+  function handleCropClose() {
+    if (cropSrc) URL.revokeObjectURL(cropSrc)
+    setCropSrc(null)
   }
 
   async function handleSave(e: React.FormEvent<HTMLFormElement>) {
@@ -328,6 +342,12 @@ export default function ClientProfileForm({ authEmail, initial }: ClientProfileF
               accept="image/*"
               onChange={handleAvatarChange}
               className="hidden"
+            />
+            <AvatarCropModal
+              imageSrc={cropSrc}
+              isOpen={!!cropSrc}
+              onClose={handleCropClose}
+              onCropped={handleAvatarCropped}
             />
           </div>
           <div>
