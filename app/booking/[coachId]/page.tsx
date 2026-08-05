@@ -19,6 +19,8 @@ type CoachProfile = {
     profiles: { full_name: string | null; avatar_url: string | null }
 }
 
+// Note we view index 0 as Sunday
+
 type AvailabilitySlot = {
     id: string
     day_of_week: number
@@ -41,7 +43,11 @@ function formatTime(time: string) {
 }
 
 function toDateString(date: Date) {
-    return date.toISOString().split('T')[0]
+    // Format the date in the local time zone
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are 0-indexed
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
 }
 
 function formatDateLong(date: Date) {
