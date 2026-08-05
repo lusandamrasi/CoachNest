@@ -195,7 +195,7 @@ export default function CartDrawer({ open, onClose }: CartDrawerProps) {
                       </div>
 
                       <div className="mt-1.5 text-sm font-semibold text-gray-800">
-                        {rate != null ? `R${rate}` : 'Rate on request'}
+                        {rate != null ? `R${(rate * sessionLengthHours).toFixed(2)}` : 'Rate on request'}
                       </div>
                     </div>
                   </li>

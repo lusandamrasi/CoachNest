@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useMemo } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, Check, ShieldCheck, ShoppingBag } from 'lucide-react'
+import { ArrowLeft, Check, ShoppingBag } from 'lucide-react'
 import { useCart } from '@/lib/hooks/useCart'
 import PaystackPop from '@paystack/inline-js'
 import { createClient } from '@/lib/supabase/client'
