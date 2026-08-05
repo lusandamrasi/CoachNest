@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { ChevronLeft, ChevronRight, Clock, AlertCircle, Check } from 'lucide-react'
 import Link from 'next/link'
+import router from 'next/router'
 
 type Booking = {
     id: string
@@ -339,7 +340,7 @@ export default function ClientBookingCalendar() {
                                                 {/* Pay button → shopping cart */}
                                                 {!booking.paid && !isPast && (
                                                     <Link
-                                                        href={`/checkout?bookingId=${booking.id}`}
+                                                        href={"/dashboard/client/checkout"}
                                                         className="flex items-center justify-center gap-1.5 w-full py-1.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold transition-colors"
                                                     >
                                                         Pay now

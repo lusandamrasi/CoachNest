@@ -197,6 +197,28 @@ export default function CartDrawer({ open, onClose }: CartDrawerProps) {
 
         {visibleCount > 0 && (
           <footer className="border-t border-gray-100 bg-white px-6 py-4">
+            <div className="mb-3 space-y-2 text-sm text-gray-600">
+              {visible.map((item) => {
+                const sessionStart = new Date(`${item.date}T${item.start_time}`);
+                const sessionEnd = new Date(`${item.date}T${item.end_time}`);
+                const sessionLengthHours = (sessionEnd.getTime() - sessionStart.getTime()) / (1000 * 60 * 60); // Calculate session length in hours
+                const coachRate = item.coach_profiles?.hourly_rate ?? 0;
+                const totalCost = coachRate * sessionLengthHours;
+
+                return (
+                  <div key={item.id} className="flex justify-between">
+                    <span>
+                      {formatDate(item.date)} ({formatTime(item.start_time)}–{formatTime(item.end_time)})
+                    </span>
+                    <span>
+                      {coachRate > 0
+                        ? `R${coachRate} × ${sessionLengthHours.toFixed(1)} hrs = R${totalCost.toFixed(2)}`
+                        : 'Rate on request'}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
             <div className="mb-3 flex items-center justify-between text-sm">
               <span className="text-gray-600">
                 Subtotal ({visibleCount} session{visibleCount !== 1 ? 's' : ''})

@@ -1,9 +1,12 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { ArrowLeft, Check, ShieldCheck, ShoppingBag } from 'lucide-react'
 import { useCart } from '@/lib/hooks/useCart'
+import PaystackPop  from '@paystack/inline-js'
+import { createClient } from '@/lib/supabase/client'
+import { useRouter } from 'next/navigation'
 
 function formatTime(time: string) {
   return time.slice(0, 5)
@@ -15,12 +18,62 @@ function formatDate(dateStr: string) {
 }
 
 export default function CheckoutContent() {
+  const router = useRouter()
   const { cartItems, cartCount, cartTotal, isLoading } = useCart()
   const [toast, setToast] = useState<string | null>(null)
 
+  const [userEmail, setUserEmail] = useState<string | null>(null)
+  const supabase = createClient()
+
+  useEffect(() => {
+    async function loadUser() {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) setUserEmail(user.email ?? null)
+    }
+    loadUser()
+  }, [])
+  
   function handlePay() {
-    setToast('Payment integration coming soon. You will be notified when Paystack is enabled.')
-    setTimeout(() => setToast(null), 4500)
+    if (!userEmail || cartItems.length === 0) return
+
+    const paystack = new PaystackPop()
+    paystack.newTransaction({
+      key: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY!,
+      email: userEmail,
+      amount: Math.round(cartTotal * 100),
+      currency: 'ZAR',
+      metadata: {
+        cartItems: cartItems.map((item) => ({
+          booking_id: item.id,
+          coach_id: item.coach_profiles?.id,
+          coach_name: item.coach_profiles?.profiles?.full_name ?? '',
+          date: item.date,
+          start_time: item.start_time,
+          end_time: item.end_time,
+          rate: item.coach_profiles?.hourly_rate,
+        })),
+      },
+      onSuccess: async (transaction: { reference: string }) => {
+        const res = await fetch('/api/payments/verify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            reference: transaction.reference,
+            bookingIds: cartItems.map((item) => item.id),
+          }),
+        })
+
+        if (res.ok) {
+          setToast(`${cartItems.length} session${cartItems.length !== 1 ? 's' : ''} paid successfully!`)
+          setTimeout(() => {
+            router.push('/dashboard/client')
+          }, 1500) // brief delay so the toast is visible before redirecting
+        }
+      },
+      onCancel: () => {
+        console.log('Payment cancelled')
+      },
+    })
   }
 
   return (
@@ -141,14 +194,13 @@ export default function CheckoutContent() {
           </button>
 
           <p className="mt-3 text-center text-xs text-gray-400">
-            Secure payment via <span className="font-semibold text-gray-500">Paystack</span> — coming soon
+            Secure payment via <span className="font-semibold text-gray-500">Paystack</span>
           </p>
 
           <div className="mt-8 flex items-start gap-2 rounded-xl bg-gray-50 px-4 py-3 text-xs text-gray-500">
             <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-gray-400" />
             <p>
-              Your booking is confirmed regardless of payment status. Payment will be required once
-              our payment system launches.
+              Your booking is confirmed regardless of payment status.
             </p>
           </div>
         </>
