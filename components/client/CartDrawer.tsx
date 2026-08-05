@@ -53,9 +53,16 @@ export default function CartDrawer({ open, onClose }: CartDrawerProps) {
   )
 
   const visibleTotal = useMemo(
-    () => visible.reduce((sum, i) => sum + (i.coach_profiles?.hourly_rate ?? 0), 0),
+    () =>
+      visible.reduce((sum, item) => {
+        const sessionStart = new Date(`${item.date}T${item.start_time}`);
+        const sessionEnd = new Date(`${item.date}T${item.end_time}`);
+        const sessionLengthHours = (sessionEnd.getTime() - sessionStart.getTime()) / (1000 * 60 * 60); // Calculate session length in hours
+        const coachRate = item.coach_profiles?.hourly_rate ?? 0;
+        return sum + coachRate * sessionLengthHours; // Multiply rate by session length
+      }, 0),
     [visible]
-  )
+  );
 
   const visibleCount = visible.length
 
@@ -136,6 +143,9 @@ export default function CartDrawer({ open, onClose }: CartDrawerProps) {
                 const profile = coach?.profiles
                 const name = profile?.full_name ?? 'Coach'
                 const rate = coach?.hourly_rate
+                const sessionStart = new Date(`${item.date}T${item.start_time}`);
+                const sessionEnd = new Date(`${item.date}T${item.end_time}`);
+                const sessionLengthHours = (sessionEnd.getTime() - sessionStart.getTime()) / (1000 * 60 * 60); // Calculate session length in hours
 
                 return (
                   <li key={item.id} className="flex items-start gap-3 px-6 py-4">
