@@ -553,7 +553,7 @@ export default function ProfileForm({ userId, initial }: ProfileFormProps) {
             placeholder="450"
           />
         </div>
-
+        {/*
         <div className="mt-6">
           <p className="text-sm font-medium text-gray-700">Session packages</p>
           <div className="mt-2 space-y-2">
@@ -602,7 +602,7 @@ export default function ProfileForm({ userId, initial }: ProfileFormProps) {
             Add Package
           </button>
         </div>
-
+        */}
         <div className="mt-6">
           <label htmlFor="travel_radius" className="text-sm font-medium text-gray-700">
             Travel radius

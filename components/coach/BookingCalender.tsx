@@ -32,8 +32,13 @@ function formatTime(time: string) {
 }
 
 function formatDateLong(dateStr: string) {
-    return new Date(dateStr + 'T00:00:00').toLocaleDateString('en-US', {
-        weekday: 'long', month: 'long', day: 'numeric',
+    const [year, month, day] = dateStr.split('-').map(Number)
+    const localDate = new Date(year, month - 1, day + 1) // Create date in local time zone
+    return localDate.toLocaleDateString('en-ZA', {
+        weekday: 'long',
+        month: 'long',
+        day: 'numeric',
+        timeZone: 'Africa/Johannesburg', // Ensure it uses the correct time zone
     })
 }
 
@@ -69,8 +74,12 @@ export default function BookingCalendar({
 
     // Build lookup: dateString -> bookings[]
     const bookingsByDate = bookings.reduce<Record<string, Booking[]>>((acc, b) => {
-        if (!acc[b.date]) acc[b.date] = []
-        acc[b.date].push(b)
+        const [year, month, day] = b.date.split('-').map(Number)
+        const localDate = new Date(year, month - 1, day) // Parse date in local time zone
+        const dateStr = toDateString(localDate)
+
+        if (!acc[dateStr]) acc[dateStr] = []
+        acc[dateStr].push(b)
         return acc
     }, {})
 

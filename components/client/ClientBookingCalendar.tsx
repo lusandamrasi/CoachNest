@@ -39,8 +39,14 @@ function formatTime(time: string) {
 }
 
 function formatDateLong(dateStr: string) {
-    return new Date(dateStr + 'T00:00:00').toLocaleDateString('en-ZA', {
-        weekday: 'long', month: 'long', day: 'numeric', timeZone: 'Africa/Johannesburg',
+    const [year, month, day] = dateStr.split('-').map(Number)
+    console.log(dateStr)
+    const localDate = new Date(year, month - 1, day + 1) // Create date in local time zone
+    return localDate.toLocaleDateString('en-ZA', {
+        weekday: 'long',
+        month: 'long',
+        day: 'numeric',
+        timeZone: 'Africa/Johannesburg', // Ensure it uses the correct time zone
     })
 }
 
@@ -98,8 +104,12 @@ export default function ClientBookingCalendar() {
     }
 
     const bookingsByDate = bookings.reduce<Record<string, Booking[]>>((acc, b) => {
-        if (!acc[b.date]) acc[b.date] = []
-        acc[b.date].push(b)
+        const [year, month, day] = b.date.split('-').map(Number)
+        const localDate = new Date(year, month - 1, day) // Parse date in local time zone
+        const dateStr = toDateString(localDate)
+
+        if (!acc[dateStr]) acc[dateStr] = []
+        acc[dateStr].push(b)
         return acc
     }, {})
 
@@ -113,13 +123,16 @@ export default function ClientBookingCalendar() {
     const selectedBookings = selectedDate ? (bookingsByDate[selectedDate] ?? []) : []
 
     const monthBookings = bookings.filter((b) => {
-        const d = new Date(b.date + 'T00:00:00')
+        const [year, month, day] = b.date.split('-').map(Number)
+        const d = new Date(year, month - 1, day) // Create date in local time zone
         return d.getFullYear() === viewYear && d.getMonth() === viewMonth
     })
 
-    const unpaidUpcoming = bookings.filter(
-        (b) => !b.paid && new Date(b.date + 'T00:00:00') >= today
-    )
+    const unpaidUpcoming = bookings.filter((b) => {
+        const [year, month, day] = b.date.split('-').map(Number)
+        const d = new Date(year, month - 1, day) // Parse date in local time zone
+        return !b.paid && d >= today
+    })
 
     if (loading) {
         return (

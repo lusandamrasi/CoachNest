@@ -298,7 +298,7 @@ export default async function CoachProfilePage({ params }: { params: { id: strin
           </Card>
         )}
 
-        {/* Packages */}
+        {/* Packages 
         {packages.length > 0 && (
           <Card padding="lg" className="mt-6">
             <h2 className="text-lg font-semibold text-gray-900">Session packages</h2>
@@ -322,7 +322,7 @@ export default async function CoachProfilePage({ params }: { params: { id: strin
             </div>
           </Card>
         )}
-
+        */}
         {/* Intro video */}
         {coach.intro_video_url && (
           <Card padding="lg" className="mt-6">
