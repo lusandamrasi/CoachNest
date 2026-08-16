@@ -42,7 +42,12 @@ export async function POST(req: NextRequest) {
     // Mark booking(s) as paid
     const { error } = await supabaseAdmin
         .from('bookings')
-        .update({ paid: true })
+        .update({ 
+            paid: true,
+            status: supabaseAdmin.from('bookings').select('status').then(({ data }) => 
+                data?.map(row => row.status === 'completed-unpaid' ? 'completed' : row.status)
+            ),
+        })
         .in('id', bookingIds)
 
     if (error) {
