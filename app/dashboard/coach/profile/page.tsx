@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import Breadcrumb from '@/components/layout/Breadcrumb'
 import ProfileOverview from '@/components/coach/ProfileOverview'
+import ShareProfileLink from '@/components/coaches/ShareProfileLink'
 
 export const metadata = { title: 'Your Profile — CoachNest' }
 
@@ -34,6 +35,11 @@ export default async function CoachProfilePage() {
           <p className="mt-2 text-gray-500">This is how clients will see you.</p>
         </div>
 
+        {/* Share profile link */}
+        <div className="mb-6">
+          <ShareProfileLink coachId={user.id} />
+        </div>
+        
         <ProfileOverview
           fullName={profile?.full_name ?? null}
           avatarUrl={profile?.avatar_url ?? null}
