@@ -17,9 +17,29 @@ const geistMono = localFont({
 })
 
 export const metadata: Metadata = {
-  title: 'CoachNest — Find Your Perfect Private Coach',
-  description:
-    'Connect with certified coaches in tennis, basketball, yoga, golf and more. Book 1-on-1 sessions tailored to your goals.',
+  metadataBase: new URL('https://coachnest.co.za'),
+  title: {
+    default: 'CoachNest — Find a Sports Coach in South Africa',
+    template: '%s | CoachNest',
+  },
+  description: 'Book qualified sports coaches across South Africa. Find coaches for tennis, football, swimming, golf and more.',
+  keywords: ['sports coach', 'coaching South Africa', 'book a coach', 'tennis coach', 'football coach'],
+  openGraph: {
+    title: 'CoachNest — Find a Sports Coach in South Africa',
+    description: 'Book qualified sports coaches across South Africa.',
+    url: 'https://coachnest.co.za',
+    siteName: 'CoachNest',
+    locale: 'en_ZA',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'CoachNest — Find a Sports Coach in South Africa',
+    description: 'Book qualified sports coaches across South Africa.',
+  },
+  alternates: {
+    canonical: 'https://coachnest.co.za',
+  },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

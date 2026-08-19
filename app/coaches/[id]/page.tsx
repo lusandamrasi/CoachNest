@@ -116,6 +116,25 @@ export default async function CoachProfilePage({ params }: { params: { id: strin
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* SEO info */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'Person',
+            name: name,
+            jobTitle: `${coach?.sport} Coach`,
+            description: coach?.bio,
+            address: {
+              '@type': 'PostalAddress',
+              addressCountry: 'ZA',
+              addressLocality: coach?.location,
+            },
+            url: `https://coachnest.co.za/coaches/${params.id}`,
+          }),
+        }}
+      />
       <main className="mx-auto max-w-5xl px-4 py-10 sm:px-6 lg:px-8">
         {/* Header card */}
         <Card padding="lg">
