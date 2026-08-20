@@ -566,6 +566,20 @@ export default function CoachBookingsPage() {
             setBookings((prev) =>
                 prev.map((b) => b.id === id ? { ...b, status } : b)
             )
+
+            if (status === 'confirmed') {
+                fetch('/api/email/booking-accepted', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ bookingId: id }),
+                }).catch(() => {})
+            } else {
+                fetch('/api/email/booking-cancelled', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ bookingId: id, cancelledBy: 'coach', reason: 'Declined by coach' }),
+                }).catch(() => {})
+            }
         }
         setActing(null)
     }

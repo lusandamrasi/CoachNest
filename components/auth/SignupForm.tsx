@@ -80,6 +80,17 @@ export default function SignupForm() {
           .update({ is_published: true })
           .eq('id', data.user.id)
       }
+
+      fetch('/api/email/welcome', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: result.data.full_name,
+          email: result.data.email,
+          role: result.data.role,
+        }),
+      }).catch(() => {})
+
       router.push(result.data.role === 'coach' ? '/dashboard/coach' : '/dashboard/client')
       router.refresh()
     }

@@ -165,7 +165,7 @@ export default function CoachBookingPage() {
             return
         }
 
-        const { error } = await supabase.from('bookings').insert({
+        const { data: newBooking, error } = await supabase.from('bookings').insert({
             coach_id: coachId,
             student_id: user.id,
             date: toDateString(selectedDate),
@@ -174,12 +174,20 @@ export default function CoachBookingPage() {
             status: 'pending',
             paid: false,
             notes: bookingNote.trim() || null,
-        })
+        }).select('id').single()
 
         if (error) {
             setBookingError('This slot may already be booked or time is unavailable. Please choose another.')
             setBooking(false)
             return
+        }
+
+        if (newBooking) {
+            fetch('/api/email/booking-request', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ bookingId: newBooking.id }),
+            }).catch(() => {})
         }
 
         setBooked(true)

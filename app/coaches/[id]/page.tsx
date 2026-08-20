@@ -17,8 +17,6 @@ import Card from '@/components/ui/Card'
 import ReviewForm from '@/components/coach/ReviewForm'
 import ReportCoachButton from '@/components/coach/ReportCoachButton'
 
-type SessionPackage = { name: string; price: number }
-
 type VerificationStatus =
   | 'unverified'
   | 'pending'
@@ -101,7 +99,6 @@ export default async function CoachProfilePage({ params }: { params: { id: strin
     viewerIsCoach = viewerProfile?.role === 'coach'
   }
 
-  const packages = (coach.session_packages as SessionPackage[] | null) ?? []
   const ageGroups: string[] = (coach.age_groups_coached as string[] | null) ?? []
   const experienceLevels: string[] = (coach.experience_levels as string[] | null) ?? []
   const coachingTypes: string[] = (coach.coaching_types as string[] | null) ?? []

@@ -1,6 +1,7 @@
 import { createClient as createAdminClient } from '@supabase/supabase-js'
 import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
+import { notifyBookingCancelled } from '@/lib/email/notifyBookingCancelled'
 
 const supabaseAdmin = createAdminClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -54,6 +55,11 @@ export async function POST(req: NextRequest) {
   if (updateErr) {
     return NextResponse.json({ error: updateErr.message }, { status: 500 })
   }
+
+  const cancelledBy = booking.coach_id === user.id ? 'coach' : 'client'
+  notifyBookingCancelled(supabaseAdmin, bookingId, cancelledBy).catch((err) =>
+    console.error('Failed to send booking cancelled emails:', err),
+  )
 
   return NextResponse.json({ success: true })
 }

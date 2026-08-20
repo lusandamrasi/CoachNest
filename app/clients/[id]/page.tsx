@@ -312,8 +312,12 @@ export default async function ClientProfileView({ params }: { params: { id: stri
                   label: booking.status,
                   className: 'bg-gray-100 text-gray-500',
                 }
-                const coachName = (booking.coach_profiles as any)?.profiles?.full_name ?? 'Coach'
-                const sport = (booking.coach_profiles as any)?.sport ?? null
+                const coachProfile = booking.coach_profiles as unknown as {
+                  sport: string | null
+                  profiles: { full_name: string | null } | null
+                } | null
+                const coachName = coachProfile?.profiles?.full_name ?? 'Coach'
+                const sport = coachProfile?.sport ?? null
 
                 return (
                   <div key={booking.id} className="py-4 space-y-2">
@@ -371,13 +375,13 @@ export default async function ClientProfileView({ params }: { params: { id: stri
                               }`}
                           />
                         ))}
-                        <span className="text-xs text-gray-400 ml-1">Coach's rating</span>
+                        <span className="text-xs text-gray-400 ml-1">Coach&apos;s rating</span>
                       </div>
                     )}
 
                     {booking.coaches_report && (
                       <p className="text-xs text-gray-500 italic bg-gray-50 rounded-lg px-3 py-2">
-                        "{booking.coaches_report}"
+                        &quot;{booking.coaches_report}&quot;
                       </p>
                     )}
                   </div>

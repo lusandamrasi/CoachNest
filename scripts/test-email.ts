@@ -21,9 +21,15 @@ if (fs.existsSync(envPath)) {
 }
 
 async function main() {
-  const { sendBookingConfirmationToClient, sendBookingNotificationToCoach } = await import(
-    '../lib/email/templates'
-  )
+  const {
+    sendBookingConfirmationToClient,
+    sendBookingNotificationToCoach,
+    sendWelcomeEmail,
+    sendNewBookingRequestToCoach,
+    sendBookingAcceptedToClient,
+    sendBookingCancelledEmail,
+    sendPostSessionReviewEmail,
+  } = await import('../lib/email/templates')
 
   const testEmail = 'Coachnestt@gmail.com'
 
@@ -49,6 +55,81 @@ async function main() {
     amount: 350,
   })
   console.log('Coach email result:', JSON.stringify(coachResult))
+
+  console.log(`Sending test welcome email (client) to ${testEmail}...`)
+  const welcomeClientResult = await sendWelcomeEmail({
+    to: testEmail,
+    name: 'Test Client',
+    role: 'client',
+  })
+  console.log('Welcome (client) email result:', JSON.stringify(welcomeClientResult))
+
+  console.log(`Sending test welcome email (coach) to ${testEmail}...`)
+  const welcomeCoachResult = await sendWelcomeEmail({
+    to: testEmail,
+    name: 'Test Coach',
+    role: 'coach',
+  })
+  console.log('Welcome (coach) email result:', JSON.stringify(welcomeCoachResult))
+
+  console.log(`Sending test new booking request email to ${testEmail}...`)
+  const bookingRequestResult = await sendNewBookingRequestToCoach({
+    to: testEmail,
+    coachName: 'Test Coach',
+    clientName: 'Test Client',
+    sport: 'Tennis',
+    date: 'Thu, 20 Aug 2026',
+    startTime: '9:00 AM',
+    endTime: '10:00 AM',
+    location: 'Sandton, Johannesburg',
+    hourlyRate: 350,
+    clientMessage: 'Looking forward to it!',
+    bookingId: 'test-booking-id-1',
+  })
+  console.log('New booking request email result:', JSON.stringify(bookingRequestResult))
+
+  console.log(`Sending test booking accepted email to ${testEmail}...`)
+  const bookingAcceptedResult = await sendBookingAcceptedToClient({
+    to: testEmail,
+    clientName: 'Test Client',
+    coachName: 'Test Coach',
+    sport: 'Tennis',
+    date: 'Thu, 20 Aug 2026',
+    startTime: '9:00 AM',
+    endTime: '10:00 AM',
+    location: 'Sandton, Johannesburg',
+    sessionFee: 350,
+    bookingFee: 0,
+    total: 350,
+    bookingId: 'test-booking-id-1',
+  })
+  console.log('Booking accepted email result:', JSON.stringify(bookingAcceptedResult))
+
+  console.log(`Sending test booking cancelled email to ${testEmail}...`)
+  const bookingCancelledResult = await sendBookingCancelledEmail({
+    to: testEmail,
+    name: 'Test Client',
+    otherPersonName: 'Test Coach',
+    role: 'client',
+    sport: 'Tennis',
+    date: 'Thu, 20 Aug 2026',
+    startTime: '9:00 AM',
+    endTime: '10:00 AM',
+    bookingId: 'test-booking-id-1',
+    cancelledBy: 'coach',
+    reason: 'Coach is unavailable',
+    refundAmount: null,
+  })
+  console.log('Booking cancelled email result:', JSON.stringify(bookingCancelledResult))
+
+  console.log(`Sending test post-session review email to ${testEmail}...`)
+  const postSessionReviewResult = await sendPostSessionReviewEmail({
+    to: testEmail,
+    clientName: 'Test Client',
+    coachName: 'Test Coach',
+    coachId: 'test-coach-id-1',
+  })
+  console.log('Post-session review email result:', JSON.stringify(postSessionReviewResult))
 }
 
 main().catch((err) => {

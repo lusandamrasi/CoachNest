@@ -1,0 +1,12 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/post-session-review",
+      "schedule": "0 10 * * *"
+    },
+    {
+      "path": "/api/cron/weekly-payout-email",
+      "schedule": "0 9 * * 1"
+    }
+  ]
+}

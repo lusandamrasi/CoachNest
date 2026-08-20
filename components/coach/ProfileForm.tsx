@@ -3,7 +3,7 @@
 import { useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Check, AlertCircle, Plus, X, UploadCloud, Landmark } from 'lucide-react'
+import { Check, AlertCircle, X, UploadCloud, Landmark } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
@@ -106,7 +106,7 @@ export default function ProfileForm({ userId, initial }: ProfileFormProps) {
   const [email, setEmail] = useState(initial.email ?? '')
   const [phoneNumber, setPhoneNumber] = useState(initial.phone_number ?? '')
 
-  const [packages, setPackages] = useState<SessionPackage[]>(initial.session_packages ?? [])
+  const [packages] = useState<SessionPackage[]>(initial.session_packages ?? [])
   const [travelRadius, setTravelRadius] = useState<number>(initial.travel_radius_km ?? 0)
 
   const [bankName, setBankName] = useState<string>(
@@ -137,27 +137,6 @@ export default function ProfileForm({ userId, initial }: ProfileFormProps) {
   function showToast(t: Toast) {
     setToast(t)
     if (t) setTimeout(() => setToast(null), 3500)
-  }
-
-  function addPackage() {
-    setPackages((p) => [...p, { name: '', price: '' }])
-  }
-
-  function updatePackage(index: number, field: 'name' | 'price', value: string) {
-    setPackages((p) =>
-      p.map((pkg, i) =>
-        i === index
-          ? {
-              ...pkg,
-              [field]: field === 'price' ? (value === '' ? '' : Number(value)) : value,
-            }
-          : pkg,
-      ),
-    )
-  }
-
-  function removePackage(index: number) {
-    setPackages((p) => p.filter((_, i) => i !== index))
   }
 
   async function handlePhotoFiles(e: React.ChangeEvent<HTMLInputElement>) {

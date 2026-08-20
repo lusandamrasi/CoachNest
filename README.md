@@ -83,6 +83,31 @@ git push origin main
 
 ---
 
+## Why pushes keep breaking the build even though `npm run dev` "works"
+
+If a co-dev can run the app locally, click around, confirm their feature works, push — and it still fails to build, this is why:
+
+**`npm run dev` and `npm run build` check different things.**
+
+- `npm run dev` starts the dev server only. It does *not* run ESLint across the project, and TypeScript errors only surface as a browser overlay on the specific page you happen to be viewing. A page can render and "work" in the browser while sitting on unused imports, `any` casts, or unescaped `'`/`"` in JSX — none of that stops the dev server.
+- `npm run build` (what actually runs before every deploy) does a full production build: it type-checks the *entire* project and lints every file. In this repo's ESLint config (`eslint-config-next`), rules like `@typescript-eslint/no-unused-vars`, `@typescript-eslint/no-explicit-any`, and `react/no-unescaped-entities` are set to **error**, not warning — so one leftover unused variable or `any` anywhere in the repo fails the whole build, even in a file the current PR didn't touch.
+
+That gap is exactly why this keeps repeating: testing in the browser only exercises `npm run dev`'s checks, never `npm run build`'s. Warnings (missing `useEffect` deps, `<img>` vs `next/image`) don't block the build — only the `Error:` lines do.
+
+### The fix — run this before every push
+
+```bash
+npm run build
+```
+
+If it fails, the output tells you exactly which rule and which `file:line` broke it. Fix those, re-run, and don't push until it prints `✓ Compiled successfully`.
+
+### Making it automatic (recommended)
+
+Relying on remembering to run `npm run build` before every push doesn't scale. The reliable fix is a `pre-push` git hook (e.g. via [Husky](https://typicode.github.io/husky/)) that runs `npm run build` automatically and blocks the push if it fails — so a broken build never leaves a co-dev's machine in the first place. Ask if you'd like this set up.
+
+---
+
 ## Routes
 
 | URL | Description |
