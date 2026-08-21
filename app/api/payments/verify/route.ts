@@ -9,7 +9,7 @@ const supabaseAdmin = createClient(
 export async function POST(req: NextRequest) {
     const body = await req.json()
     const { reference } = body
-
+    
     // CheckoutContent.tsx pays for a whole cart in one transaction and sends
     // bookingIds (plural); a single bookingId is also accepted for callers
     // paying for one booking at a time.
@@ -44,9 +44,9 @@ export async function POST(req: NextRequest) {
         .from('bookings')
         .update({ 
             paid: true,
-            status: supabaseAdmin.from('bookings').select('status').then(({ data }) => 
+            /*status: supabaseAdmin.from('bookings').select('status').then(({ data }) => 
                 data?.map(row => row.status === 'completed-unpaid' ? 'completed' : row.status)
-            ),
+            ),*/
         })
         .in('id', bookingIds)
 
