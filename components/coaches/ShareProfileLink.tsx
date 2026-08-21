@@ -6,7 +6,7 @@ import { Copy, Check, Link2 } from 'lucide-react'
 export default function ShareProfileLink({ coachId }: { coachId: string }) {
     const [copied, setCopied] = useState(false)
 
-    const profileUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/coaches/${coachId}`
+    const profileUrl = `http://coachnest.co.za/coaches/${coachId}`
 
     const handleCopy = async () => {
         await navigator.clipboard.writeText(profileUrl)
