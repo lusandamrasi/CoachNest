@@ -9,10 +9,10 @@ const supabaseAdmin = createAdminClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!,
 )
 
-// The checkout flow (components/client/CheckoutContent.tsx) doesn't add a
-// platform fee on top of the coach's session rate yet — this mirrors that
+// The checkout flow (components/client/CheckoutContent.tsx) adds a
+// platform fee on top of the coach's session rate of 1% — this mirrors that
 // so the email never shows a total that disagrees with what's charged.
-const BOOKING_FEE = 0
+const BOOKING_FEE_PERCENTAGE = 0.01
 
 type CoachJoin = {
   sport: string | null
@@ -65,7 +65,8 @@ export async function POST(req: NextRequest) {
   const end = new Date(`${booking.date}T${booking.end_time}`)
   const hours = (end.getTime() - start.getTime()) / (1000 * 60 * 60)
   const sessionFee = Math.round((coach?.hourly_rate ?? 0) * hours * 100) / 100
-  const total = sessionFee + BOOKING_FEE
+  const bookingFee = Math.round(sessionFee * BOOKING_FEE_PERCENTAGE * 100) / 100
+  const total = sessionFee + bookingFee
 
   await sendBookingAcceptedToClient({
     to: clientEmail,
@@ -77,7 +78,7 @@ export async function POST(req: NextRequest) {
     endTime: formatBookingTime(booking.end_time),
     location: coach?.location ?? 'Not specified',
     sessionFee,
-    bookingFee: BOOKING_FEE,
+    bookingFee: bookingFee,
     total,
     bookingId: booking.id,
   })
