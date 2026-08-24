@@ -39,7 +39,7 @@ export default function AvailabilityPage() {
     const [selectedDay, setSelectedDay] = useState<number>(1)
     const [startTime, setStartTime] = useState('09:00')
     const [endTime, setEndTime] = useState('10:00')
-    const [numClients, setNumClients] = useState<number>(1)
+    const [numClients, setNumClients] = useState<number>(0)
     const [notes, setNotes] = useState<string>('')
     const [pendingSlots, setPendingSlots] = useState<Slot[]>([])
     const [saving, setSaving] = useState(false)
@@ -172,17 +172,18 @@ export default function AvailabilityPage() {
             <div className="rounded-xl border border-gray-200 bg-white p-5 space-y-4">
                 <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Add a Slot</h2>
                 <div className="space-y-3">
-                    <div className="flex flex-col gap-1">
-                        <label className="text-sm text-gray-600 font-medium">Maximum Group Size</label>
-                        <input
-                            type="number"
-                            min={1}
-                            max={20}
-                            value={numClients}
-                            onChange={(e) => setNumClients(Math.max(1, parseInt(e.target.value) || 1))}
-                            className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-blue-400 focus:outline-none"
-                        />
-                    </div>
+                        <div className="flex flex-col gap-1">
+                            <label className="text-sm text-gray-600 font-medium">Maximum Group Size</label>
+                            <input
+                                type="number"
+                                min={1}
+                                max={20}
+                                value={numClients == 0 ? "" : numClients}
+                                onChange={(e) => setNumClients(Math.max(0, Math.min(20, parseInt(e.target.value) || 0)))}
+                                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-blue-400 focus:outline-none appearance-none"
+                                placeholder="Groups can be between 1 and 20"
+                            />
+                        </div>
                 </div>
 
                 <div className="space-y-3">
