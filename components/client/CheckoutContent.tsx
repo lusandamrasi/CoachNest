@@ -69,7 +69,7 @@ export default function CheckoutContent() {
     paystack.newTransaction({
       key: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY!,
       email: userEmail,
-      amount: Math.round(cartTotal * 103),
+      amount: Math.round(cartTotal * 105),
       currency: 'ZAR',
       metadata: {
         client_id: userId,
@@ -215,12 +215,12 @@ export default function CheckoutContent() {
               </div>
               <div className="flex justify-between text-gray-600">
                 <dt>Platform fee</dt>
-                <dd>R{(cartTotal * 0.03).toFixed(2)}</dd>
+                <dd>R{(cartTotal * 0.05).toFixed(2)}</dd>
               </div>
               <div className="my-2 border-t border-gray-100" />
               <div className="flex justify-between text-base font-bold text-gray-900">
                 <dt>Total</dt>
-                    <dd>R{(cartTotal * 1.03).toFixed(2)}</dd>
+                    <dd>R{(cartTotal * 1.05).toFixed(2)}</dd>
               </div>
             </dl>
           </div>

@@ -10,9 +10,9 @@ const supabaseAdmin = createAdminClient(
 )
 
 // The checkout flow (components/client/CheckoutContent.tsx) adds a
-// platform fee on top of the coach's session rate of 1% — this mirrors that
+// platform fee on top of the coach's session rate of 5% — this mirrors that
 // so the email never shows a total that disagrees with what's charged.
-const BOOKING_FEE_PERCENTAGE = 0.03
+const BOOKING_FEE_PERCENTAGE = 0.05
 
 type CoachJoin = {
   sport: string | null
