@@ -23,6 +23,8 @@ export const SPORT_OPTIONS = [
   'Soccer',
   'Swimming',
   'Boxing',
+  'Personal Trainer',
+  'Padel',
 ] as const
 
 const AGE_GROUPS = ['Kids (5–12)', 'Teens (13–17)', 'Adults (18+)', 'Seniors (60+)'] as const
