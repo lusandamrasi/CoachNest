@@ -95,7 +95,7 @@ export default async function CoachProfilePage({ params }: { params: { id: strin
       .select('role')
       .eq('id', user.id)
       .single()
-    viewerIsClient = viewerProfile?.role === 'client'
+    viewerIsClient = viewerProfile?.role === 'client' || viewerProfile?.role === 'admin'
     viewerIsCoach = viewerProfile?.role === 'coach'
   }
 

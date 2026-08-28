@@ -28,6 +28,7 @@ type AvailabilitySlot = {
     end_time: string
     notes: string | null
     num_clients: number
+    cost: number
 }
 
 function getInitials(name: string | null) {
@@ -174,6 +175,7 @@ export default function CoachBookingPage() {
             status: 'pending',
             paid: false,
             notes: bookingNote.trim() || null,
+            cost: selectedSlot.cost
         }).select('id').single()
 
         if (error) {
@@ -376,13 +378,21 @@ export default function CoachBookingPage() {
                                                 <span className={selectedSlot?.id === slot.id ? 'text-base font-semibold' : ''}>
                                                     {formatTime(slot.start_time)} – {formatTime(slot.end_time)}
                                                 </span>
-                                                {slot.num_clients > 1 && (
-                                                    <span className={`flex items-center gap-1 text-xs font-medium ${selectedSlot?.id === slot.id ? 'text-blue-100' : 'text-gray-400'
-                                                        }`}>
-                                                        <Users className="w-3 h-3" />
-                                                        {slot.num_clients} spots
-                                                    </span>
-                                                )}
+                                                <div className="flex items-center gap-2">
+                                                    {slot.num_clients > 1 && (
+                                                        <span className={`flex items-center gap-1 text-xs font-medium ${selectedSlot?.id === slot.id ? 'text-blue-100' : 'text-gray-400'
+                                                            }`}>
+                                                            <Users className="w-3 h-3" />
+                                                            {slot.num_clients} spots
+                                                        </span>
+                                                    )}
+                                                    {slot.cost != null && (
+                                                        <span className={`text-xs font-semibold ${selectedSlot?.id === slot.id ? 'text-blue-100' : 'text-green-600'
+                                                            }`}>
+                                                            R{slot.cost}
+                                                        </span>
+                                                    )}
+                                                </div>
                                             </div>
 
                                             {/* Expanded content when selected */}
@@ -420,11 +430,21 @@ export default function CoachBookingPage() {
                         {/* Confirm */}
                         {selectedSlot && selectedDate && (
                             <div className="space-y-3 pt-2 border-t border-gray-100">
-                                <div className="rounded-xl bg-blue-50 border border-blue-100 px-4 py-3 text-sm text-blue-700">
-                                    <span className="font-semibold">Summary: </span>
-                                    {formatDateLong(selectedDate)} · {formatTime(selectedSlot.start_time)} – {formatTime(selectedSlot.end_time)}
-                                        {coach.hourly_rate != null && <span className="ml-2 text-blue-500">· R{coach.hourly_rate != null ? (coach.hourly_rate * ((new Date(`${selectedDate.toISOString().split('T')[0]}T${selectedSlot.end_time}`).getTime() - new Date(`${selectedDate.toISOString().split('T')[0]}T${selectedSlot.start_time}`).getTime()) / (1000 * 60 * 60))).toFixed(2) : 'N/A'}</span>}
-                                </div>
+                                    <div className="rounded-xl bg-blue-50 border border-blue-100 px-4 py-3 text-sm text-blue-700">
+                                        <span className="font-semibold">Summary: </span>
+                                        {formatDateLong(selectedDate)} · {formatTime(selectedSlot.start_time)} – {formatTime(selectedSlot.end_time)}
+                                        <span className="ml-2 text-blue-500">
+                                            · R{(() => {
+                                                const hrs = (new Date(`2000-01-01T${selectedSlot.end_time}`).getTime() - new Date(`2000-01-01T${selectedSlot.start_time}`).getTime()) / (1000 * 60 * 60)
+                                                const amount = selectedSlot.cost != null
+                                                    ? selectedSlot.cost
+                                                    : coach.hourly_rate != null
+                                                        ? coach.hourly_rate * hrs
+                                                        : null
+                                                return amount != null ? amount.toFixed(2) : 'N/A'
+                                            })()}
+                                        </span>
+                                    </div>
 
                                 {!booked && (
                                     <div className="flex flex-col gap-1">

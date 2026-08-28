@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
     .select(`
       id, date, start_time, end_time, notes, coach_id,
       coach_profiles ( sport, hourly_rate, location, email, profiles ( full_name ) ),
-      profiles!bookings_student_id_fkey ( full_name )
+      profiles!bookings_student_id_fkey ( full_name ), cost
     `)
     .eq('id', bookingId)
     .maybeSingle()
@@ -60,7 +60,7 @@ export async function POST(req: NextRequest) {
     startTime: formatBookingTime(booking.start_time),
     endTime: formatBookingTime(booking.end_time),
     location: coach?.location ?? 'Not specified',
-    hourlyRate: coach?.hourly_rate ?? 0,
+    cost: booking?.cost ?? 0,
     clientMessage: booking.notes,
     bookingId: booking.id,
   })

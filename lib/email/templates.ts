@@ -247,7 +247,7 @@ interface NewBookingRequestParams {
   startTime: string
   endTime: string
   location: string
-  hourlyRate: number
+  cost: number
   clientMessage?: string | null
   bookingId: string
 }
@@ -255,7 +255,7 @@ interface NewBookingRequestParams {
 export async function sendNewBookingRequestToCoach(params: NewBookingRequestParams) {
   const {
     to, coachName, clientName, sport, date, startTime, endTime,
-    location, hourlyRate, clientMessage, bookingId,
+    location, cost, clientMessage, bookingId,
   } = params
 
   try {
@@ -269,7 +269,7 @@ export async function sendNewBookingRequestToCoach(params: NewBookingRequestPara
         ['Date', escapeHtml(date)],
         ['Time', `${escapeHtml(startTime)} – ${escapeHtml(endTime)}`],
         ['Location', escapeHtml(location)],
-        ['Your Price', `R${hourlyRate}`],
+        ['Your Price', `R${cost}`],
       ])}
       <p style="font-size: 12px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.03em; margin: 0 0 6px;">Client message</p>
       <p style="font-size: 14px; color: #4b5563; margin: 0 0 16px; font-style: italic;">${clientMessage ? escapeHtml(clientMessage) : 'No message provided'}</p>

@@ -26,6 +26,7 @@ type Slot = {
     end_time: string
     num_clients: number
     notes?: string | null
+    cost: number | null
 }
 
 const NOTES_MAX = 200
@@ -40,6 +41,8 @@ export default function AvailabilityPage() {
     const [startTime, setStartTime] = useState('09:00')
     const [endTime, setEndTime] = useState('10:00')
     const [numClients, setNumClients] = useState<number>(0)
+    const [hourlyRate, setHourlyRate] = useState<number | null>(null)
+    const [cost, setCost] = useState<number>(0)
     const [notes, setNotes] = useState<string>('')
     const [pendingSlots, setPendingSlots] = useState<Slot[]>([])
     const [saving, setSaving] = useState(false)
@@ -52,12 +55,20 @@ export default function AvailabilityPage() {
             if (!user) return router.push('/auth/login')
             setCoachId(user.id)
 
-            const { data } = await supabase
-                .from('availability')
-                .select('*')
-                .eq('coach_id', user.id)
+            const [{ data: availData }, { data: coachData }] = await Promise.all([
+                supabase
+                    .from('availability')
+                    .select('*')
+                    .eq('coach_id', user.id),
+                supabase
+                    .from('coach_profiles')
+                    .select('hourly_rate')
+                    .eq('id', user.id)
+                    .single(),
+            ])
 
-            if (data) setSavedSlots(data)
+            if (availData) setSavedSlots(availData)
+            if (coachData) setHourlyRate(coachData.hourly_rate)
         }
         load()
     }, [])
@@ -77,6 +88,10 @@ export default function AvailabilityPage() {
             return
         }
 
+        if (cost == 0) {
+            setAddError('Please set your price for the session.')
+            return
+        }
         const duplicate = [...savedSlots, ...pendingSlots].some(
             (s) => s.day_of_week === selectedDay && s.start_time === startTime && s.end_time === endTime
         )
@@ -96,6 +111,7 @@ export default function AvailabilityPage() {
                 day_of_week: selectedDay,
                 start_time: startTime,
                 end_time: endTime,
+                cost: cost,
                 num_clients: numClients,
                 notes: notes.trim() || null,
             },
@@ -127,14 +143,22 @@ export default function AvailabilityPage() {
             return
         }
 
-        const allSlots = [...savedSlots, ...pendingSlots].map((s) => ({
-            coach_id: coachId,
-            day_of_week: s.day_of_week,
-            start_time: s.start_time,
-            end_time: s.end_time,
-            num_clients: s.num_clients ?? 1,
-            notes: s.notes ?? null,
-        }))
+        const allSlots = [...savedSlots, ...pendingSlots].map((s) => {
+            // In case a cost wasn't inputed then work out based on the hourly rate what the cost is
+            const [sh, sm] = s.start_time.split(':').map(Number)
+            const [eh, em] = s.end_time.split(':').map(Number)
+            const hrs = ((eh * 60 + em) - (sh * 60 + sm)) / 60
+
+            return {
+                coach_id: coachId,
+                day_of_week: s.day_of_week,
+                start_time: s.start_time,
+                end_time: s.end_time,
+                num_clients: s.num_clients ?? 1,
+                notes: s.notes ?? null,
+                cost: s.cost || (hourlyRate != null ? hourlyRate * hrs : null),
+            }
+        })
 
         if (allSlots.length > 0) {
             const { error: insertError } = await supabase.from('availability').insert(allSlots)
@@ -183,6 +207,23 @@ export default function AvailabilityPage() {
                                 className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-blue-400 focus:outline-none appearance-none"
                                 placeholder="Groups can be between 1 and 20"
                             />
+                        </div>
+                </div>
+                <div className="space-y-3">
+                        <div className="flex flex-col gap-1">
+                            <label className="text-sm text-gray-600 font-medium">Price for the session</label>
+                            <div className="relative">
+                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-400 font-medium">R</span>
+                                <input
+                                    type="number"
+                                    min={0}
+                                    max={10000}
+                                    value={cost === 0 ? "" : cost}
+                                    onChange={(e) => setCost(Math.max(0, Math.min(10000, parseInt(e.target.value) || 0)))}
+                                    className="w-full rounded-lg border border-gray-200 pl-7 pr-3 py-2 text-sm text-gray-700 focus:border-blue-400 focus:outline-none appearance-none"
+                                    placeholder={hourlyRate != null ? String(hourlyRate) : '0'}
+                                />
+                            </div>
                         </div>
                 </div>
 
@@ -292,6 +333,13 @@ export default function AvailabilityPage() {
                                                                 <Users className="w-3 h-3 text-gray-400" />
                                                                 {slot.num_clients ?? 1} client{(slot.num_clients ?? 1) !== 1 ? 's' : ''}
                                                             </span>
+
+                                                            {/* Total Price */}
+                                                            {slot.cost != null && (
+                                                                <span className="flex items-center gap-1 text-xs font-semibold text-green-700 bg-green-50 border border-green-100 px-2 py-0.5 rounded-full">
+                                                                    R{slot.cost}
+                                                                </span>
+                                                            )}
 
                                                             {isPending && (
                                                                 <span className="text-xs bg-blue-100 text-blue-600 font-medium px-2 py-0.5 rounded-full">

@@ -8,6 +8,7 @@ export type CartItem = {
   date: string
   start_time: string
   end_time: string
+  cost: number
   coach_profiles: {
     id: string
     sport: string | null
@@ -53,14 +54,14 @@ export function useCart() {
     const { data, error } = await supabase
       .from('bookings')
       .select(`
-        id, date, start_time, end_time,
+        id, date, start_time, end_time, cost,
         coach_profiles (
           id, sport, hourly_rate,
           profiles ( full_name, avatar_url )
         )
       `)
       .eq('student_id', user.id)
-      .in('status', ['confirmed', 'completed-unpaid'])
+      .in('status', ['confirmed', 'completed-unpaid', 'review'])
       .eq('paid', false)
       .order('date', { ascending: true })
 
@@ -81,6 +82,5 @@ export function useCart() {
     (sum, item) => sum + (item.coach_profiles?.hourly_rate ?? 0),
     0
   )
-
   return { cartItems, cartCount, cartTotal, isLoading, refresh: refreshCart }
 }

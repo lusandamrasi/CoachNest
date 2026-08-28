@@ -55,10 +55,12 @@ export default function CartDrawer({ open, onClose }: CartDrawerProps) {
   const visibleTotal = useMemo(
     () =>
       visible.reduce((sum, item) => {
+        const cost = item.cost;
         const sessionStart = new Date(`${item.date}T${item.start_time}`);
         const sessionEnd = new Date(`${item.date}T${item.end_time}`);
         const sessionLengthHours = (sessionEnd.getTime() - sessionStart.getTime()) / (1000 * 60 * 60); // Calculate session length in hours
         const coachRate = item.coach_profiles?.hourly_rate ?? 0;
+        if (cost != null) return sum + cost // If they've set a cost use that else
         return sum + coachRate * sessionLengthHours; // Multiply rate by session length
       }, 0),
     [visible]
@@ -142,6 +144,7 @@ export default function CartDrawer({ open, onClose }: CartDrawerProps) {
                 const coach = item.coach_profiles
                 const profile = coach?.profiles
                 const name = profile?.full_name ?? 'Coach'
+                const cost = item.cost
                 const rate = coach?.hourly_rate
                 const sessionStart = new Date(`${item.date}T${item.start_time}`);
                 const sessionEnd = new Date(`${item.date}T${item.end_time}`);
@@ -195,7 +198,11 @@ export default function CartDrawer({ open, onClose }: CartDrawerProps) {
                       </div>
 
                       <div className="mt-1.5 text-sm font-semibold text-gray-800">
-                        {rate != null ? `R${(rate * sessionLengthHours).toFixed(2)}` : 'Rate on request'}
+                        {(() => {
+                          if (cost != null) return `R${cost}`
+                          if (rate != null) return `R${(rate * sessionLengthHours).toFixed(2)}`
+                          return 'Rate on request'
+                        })()}
                       </div>
                     </div>
                   </li>
@@ -214,6 +221,7 @@ export default function CartDrawer({ open, onClose }: CartDrawerProps) {
                 const sessionLengthHours = (sessionEnd.getTime() - sessionStart.getTime()) / (1000 * 60 * 60); // Calculate session length in hours
                 const coachRate = item.coach_profiles?.hourly_rate ?? 0;
                 const totalCost = coachRate * sessionLengthHours;
+                const cost = item.cost;
 
                 return (
                   <div key={item.id} className="flex justify-between">
@@ -221,9 +229,12 @@ export default function CartDrawer({ open, onClose }: CartDrawerProps) {
                       {formatDate(item.date)} ({formatTime(item.start_time)}–{formatTime(item.end_time)})
                     </span>
                     <span>
-                      {coachRate > 0
-                        ? `R${coachRate} × ${sessionLengthHours.toFixed(1)} hrs = R${totalCost.toFixed(2)}`
-                        : 'Rate on request'}
+                      {(() => {
+                        if (cost != null) return `R${cost}`
+                        if (coachRate != null) return `R${coachRate} × ${sessionLengthHours.toFixed(1)} hrs = R${totalCost.toFixed(2)}`
+                        return 'Rate on request'
+                        })()
+                      }
                     </span>
                   </div>
                 );
