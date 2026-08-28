@@ -82,7 +82,7 @@ async function main() {
     startTime: '9:00 AM',
     endTime: '10:00 AM',
     location: 'Sandton, Johannesburg',
-    hourlyRate: 350,
+    cost: 350,
     clientMessage: 'Looking forward to it!',
     bookingId: 'test-booking-id-1',
   })
