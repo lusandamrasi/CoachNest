@@ -6,7 +6,16 @@ import Card from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
 import LocationAutocomplete from '@/components/coach/LocationAutocomplete'
 
-const SPORTS = ['All', 'Tennis', 'Basketball', 'Yoga', 'Golf', 'Soccer', 'Swimming', 'Boxing'] as const
+const SPORTS = ['All', 
+  'Tennis',
+  'Basketball',
+  'Yoga',
+  'Golf',
+  'Soccer',
+  'Swimming',
+  'Boxing',
+  'Personal Trainer',
+  'Padel', ] as const // NEED TO TURN THIS TO AN ENV CONSTANT
 const EXPERIENCE_LEVELS = ['Beginner', 'Intermediate', 'Advanced'] as const
 
 interface FiltersSidebarProps {
