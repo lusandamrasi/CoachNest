@@ -197,10 +197,19 @@ middleware.ts        Session refresh + route protection
 
 ---
 
-## Not yet built
+## Ghost User bug fix:
 
-- Booking and payment flows
-- Coach profile edit page
-- Coach search and filter
-- Video upload UI
-- Review system
+```
+When someone signs up, the database runs a function that's supposed to create 3 things in order:
+
+A row in profiles (everyone gets this)
+A row in coach_profiles OR client_profiles depending on their role
+
+The bug was that all 3 steps were wrapped in one safety net. So if step 2 or 3 failed for any reason, the safety net rolled back everything — including step 1 that had already succeeded.
+
+The result: the person existed in the login system (they could sign in) but had no profile row anywhere in the database. The app couldn't find them so they'd get errors or see blank data.
+
+23 of your 38 users had this happen to them — they signed up successfully but were invisible to the app.
+
+The fix gives each step its own independent safety net so a failure in step 2 or 3 can never undo step 1.
+```

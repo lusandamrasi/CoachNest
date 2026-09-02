@@ -1,5 +1,8 @@
+import { isVerifiedCoach } from '@/lib/utils/isVerifiedCoach'
+
 export type CoachBadgeData = {
   verification_status: string | null
+  id_document_url: string | null
   created_at: string | null
 }
 
@@ -20,7 +23,7 @@ export function computeBadges(coach: CoachBadgeData, avgRating: number | null): 
   if (avgRating !== null && avgRating >= 4.8) {
     badges.push({ label: 'Top Rated', variant: 'green' })
   }
-  if (coach.verification_status === 'verified') {
+  if (isVerifiedCoach(coach)) {
     badges.push({ label: 'Verified ✓', variant: 'green' })
   } else if (
     coach.verification_status === 'pending' ||

@@ -6,6 +6,7 @@ import { Check, AlertCircle, UploadCloud, FileText, ShieldCheck } from 'lucide-r
 import { createClient } from '@/lib/supabase/client'
 import Button from '@/components/ui/Button'
 import Card from '@/components/ui/Card'
+import ConfirmDialog from '@/components/ui/ConfirmDialog'
 
 type VerificationStatus =
   | 'unverified'
@@ -92,8 +93,19 @@ export default function VerificationForm({ userId, initial }: VerificationFormPr
   const [toast, setToast] = useState<Toast>(null)
   const [error, setError] = useState<string | null>(null)
 
+  const [idConfirm, setIdConfirm] = useState<'replace' | 'remove' | null>(null)
+  const [idConfirmLoading, setIdConfirmLoading] = useState(false)
+  const [idConfirmError, setIdConfirmError] = useState<string | null>(null)
+
   const idInputRef = useRef<HTMLInputElement>(null)
   const qualInputRef = useRef<HTMLInputElement>(null)
+  // Set when a replace is confirmed, so handleIdFile knows to reset the
+  // verification status once the new file actually finishes uploading.
+  const pendingReplaceResetRef = useRef(false)
+
+  // Once a document has been reviewed at all, swapping it out invalidates
+  // that review — the coach must be warned and re-reviewed from Pending.
+  const idStatusAtRisk = status === 'verified' || status === 'id_verified' || status === 'qualification_verified'
 
   function showToast(t: Toast) {
     setToast(t)
@@ -130,13 +142,18 @@ export default function VerificationForm({ userId, initial }: VerificationFormPr
     setError(null)
     const file = e.target.files?.[0]
     e.target.value = ''
-    if (!file) return
+    if (!file) {
+      pendingReplaceResetRef.current = false
+      return
+    }
     if (!ID_ACCEPTED.includes(file.type)) {
       setError('ID must be a PDF, JPG, or PNG.')
+      pendingReplaceResetRef.current = false
       return
     }
     if (file.size > DOC_MAX_BYTES) {
       setError('ID file must be 10MB or smaller.')
+      pendingReplaceResetRef.current = false
       return
     }
 
@@ -144,8 +161,83 @@ export default function VerificationForm({ userId, initial }: VerificationFormPr
     const ext = file.name.split('.').pop() ?? 'pdf'
     const path = `${userId}/id.${ext}`
     const result = await uploadPrivate(file, path)
-    if (result) setIdDocUrl(path)
+    if (result) {
+      setIdDocUrl(path)
+      if (pendingReplaceResetRef.current) {
+        await resetStatusToPending('New ID document uploaded. Your verification status has been reset to Pending.')
+      }
+    }
+    pendingReplaceResetRef.current = false
     setUploadingId(false)
+  }
+
+  async function resetStatusToPending(successMessage: string) {
+    const supabase = createClient()
+    const { error: updErr } = await supabase
+      .from('coach_profiles')
+      .update({ verification_status: 'pending' })
+      .eq('id', userId)
+
+    if (updErr) {
+      setError(`Failed to reset verification status: ${updErr.message}`)
+      return
+    }
+    setStatus('pending')
+    showToast({ kind: 'success', message: successMessage })
+  }
+
+  function handleReplaceClick() {
+    if (idStatusAtRisk) {
+      setIdConfirm('replace')
+    } else {
+      idInputRef.current?.click()
+    }
+  }
+
+  function handleRemoveClick() {
+    if (idStatusAtRisk) {
+      setIdConfirm('remove')
+    } else {
+      void removeIdDocument()
+    }
+  }
+
+  async function removeIdDocument(): Promise<boolean> {
+    const supabase = createClient()
+    const nextStatus: VerificationStatus = idStatusAtRisk ? 'pending' : status
+
+    const { error: updErr } = await supabase
+      .from('coach_profiles')
+      .update({ id_document_url: null, verification_status: nextStatus })
+      .eq('id', userId)
+
+    if (updErr) {
+      setIdConfirmError(`Failed to remove document: ${updErr.message}`)
+      return false
+    }
+
+    setIdDocUrl(null)
+    if (nextStatus !== status) {
+      setStatus(nextStatus)
+      showToast({ kind: 'success', message: 'ID document removed. Your verification status has been reset to Pending.' })
+    }
+    return true
+  }
+
+  async function handleIdConfirm() {
+    if (idConfirm === 'replace') {
+      setIdConfirm(null)
+      pendingReplaceResetRef.current = true
+      idInputRef.current?.click()
+      return
+    }
+    if (idConfirm === 'remove') {
+      setIdConfirmLoading(true)
+      setIdConfirmError(null)
+      const ok = await removeIdDocument()
+      setIdConfirmLoading(false)
+      if (ok) setIdConfirm(null)
+    }
   }
 
   async function handleQualFiles(e: React.ChangeEvent<HTMLInputElement>) {
@@ -190,6 +282,10 @@ export default function VerificationForm({ userId, initial }: VerificationFormPr
       setError('Please upload your SA ID or Passport.')
       return
     }
+    if (qualUrls.length === 0) {
+      setError('Please upload at least one qualification or certificate.')
+      return
+    }
 
     setSubmitting(true)
     const supabase = createClient()
@@ -222,7 +318,7 @@ export default function VerificationForm({ userId, initial }: VerificationFormPr
     router.refresh()
   }
 
-  const canSubmit = declarationAccepted && !!idDocUrl && !submitting
+  const canSubmit = declarationAccepted && !!idDocUrl && qualUrls.length > 0 && !submitting
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -240,6 +336,24 @@ export default function VerificationForm({ userId, initial }: VerificationFormPr
         </div>
       )}
 
+      <ConfirmDialog
+        isOpen={idConfirm !== null}
+        title={idConfirm === 'replace' ? 'Replace ID Document?' : 'Remove ID Document?'}
+        message={
+          idConfirm === 'replace'
+            ? 'Replacing your ID document will reset your verification status to Pending until the new document is reviewed and verified again.'
+            : 'Removing your ID document will reset your verification status to Pending and hide your Verified badge until a new document is uploaded and verified.'
+        }
+        confirmLabel={idConfirm === 'replace' ? 'Replace Document' : 'Remove Document'}
+        loading={idConfirmLoading}
+        error={idConfirmError}
+        onConfirm={handleIdConfirm}
+        onCancel={() => {
+          setIdConfirm(null)
+          setIdConfirmError(null)
+        }}
+      />
+
       {/* Status card */}
       <Card padding="lg">
         <div className="flex items-center gap-2 text-blue-600">
@@ -255,7 +369,10 @@ export default function VerificationForm({ userId, initial }: VerificationFormPr
 
       {/* Uploads */}
       <Card padding="lg">
-        <h2 className="text-lg font-semibold text-gray-900">SA ID or Passport</h2>
+        <div className="flex flex-wrap items-center gap-2">
+          <h2 className="text-lg font-semibold text-gray-900">SA ID or Passport</h2>
+          <span className="text-xs text-gray-400">Required for verified badge</span>
+        </div>
         <p className="mt-1 text-sm text-gray-500">PDF, JPG, or PNG. Max 10MB.</p>
 
         <div className="mt-4">
@@ -266,21 +383,28 @@ export default function VerificationForm({ userId, initial }: VerificationFormPr
               <span className="flex-1 truncate text-sm text-gray-700">
                 {filenameFromUrl(idDocUrl)}
               </span>
-              {!locked && (
-                <button
-                  type="button"
-                  onClick={() => idInputRef.current?.click()}
-                  className="text-xs font-medium text-blue-600 hover:underline"
-                >
-                  Replace
-                </button>
-              )}
+              <button
+                type="button"
+                onClick={handleReplaceClick}
+                disabled={uploadingId}
+                className="text-xs font-medium text-blue-600 hover:underline disabled:opacity-50"
+              >
+                Replace
+              </button>
+              <button
+                type="button"
+                onClick={handleRemoveClick}
+                disabled={uploadingId}
+                className="text-xs font-medium text-gray-500 hover:text-red-500 disabled:opacity-50"
+              >
+                Remove
+              </button>
             </div>
           ) : (
             <button
               type="button"
               onClick={() => idInputRef.current?.click()}
-              disabled={uploadingId || locked}
+              disabled={uploadingId}
               className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-gray-300 bg-gray-50 px-6 py-6 text-sm text-gray-600 hover:border-blue-500 hover:bg-blue-50 disabled:opacity-50"
             >
               <UploadCloud className="h-5 w-5" />
@@ -311,29 +435,25 @@ export default function VerificationForm({ userId, initial }: VerificationFormPr
               <Check className="h-4 w-4 text-green-600" />
               <FileText className="h-4 w-4 text-gray-500" />
               <span className="flex-1 truncate text-sm text-gray-700">{filenameFromUrl(path)}</span>
-              {!locked && (
-                <button
-                  type="button"
-                  onClick={() => removeQual(path)}
-                  className="text-xs font-medium text-gray-500 hover:text-red-500"
-                >
-                  Remove
-                </button>
-              )}
+              <button
+                type="button"
+                onClick={() => removeQual(path)}
+                className="text-xs font-medium text-gray-500 hover:text-red-500"
+              >
+                Remove
+              </button>
             </div>
           ))}
 
-          {!locked && (
-            <button
-              type="button"
-              onClick={() => qualInputRef.current?.click()}
-              disabled={uploadingQual}
-              className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-gray-300 bg-gray-50 px-6 py-6 text-sm text-gray-600 hover:border-blue-500 hover:bg-blue-50 disabled:opacity-50"
-            >
-              <UploadCloud className="h-5 w-5" />
-              {uploadingQual ? 'Uploading…' : 'Upload qualification(s)'}
-            </button>
-          )}
+          <button
+            type="button"
+            onClick={() => qualInputRef.current?.click()}
+            disabled={uploadingQual}
+            className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-gray-300 bg-gray-50 px-6 py-6 text-sm text-gray-600 hover:border-blue-500 hover:bg-blue-50 disabled:opacity-50"
+          >
+            <UploadCloud className="h-5 w-5" />
+            {uploadingQual ? 'Uploading…' : 'Upload qualification(s)'}
+          </button>
 
           <input
             ref={qualInputRef}

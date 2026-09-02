@@ -507,3 +507,60 @@ export async function sendCoachWeeklyPayoutEmail(params: CoachWeeklyPayoutParams
     return null
   }
 }
+
+// --- Email 9 — Coach Verification Status Update (Coach) -------------------
+
+type VerificationStatus = 'id_verified' | 'qualification_verified' | 'verified'
+
+interface VerificationStatusEmailParams {
+  to: string
+  coachName: string
+  status: VerificationStatus
+}
+
+const VERIFICATION_STATUS_BODY: Record<VerificationStatus, string> = {
+  id_verified: `
+    <p style="font-size: 14px; color: #4b5563; margin: 0 0 16px;">
+      Your ID has been verified on CoachNest.
+      Please upload your coaching qualifications to complete full verification.
+    </p>
+  `,
+  qualification_verified: `
+    <p style="font-size: 14px; color: #4b5563; margin: 0 0 16px;">
+      Your qualifications have been verified. Final review is in progress.
+    </p>
+  `,
+  verified: `
+    <p style="font-size: 14px; color: #4b5563; margin: 0 0 16px;">
+      Great news — you are now a Fully Verified Coach on CoachNest!
+      Your green Verified Coach badge is now live on your public profile,
+      helping clients trust and choose you with confidence.
+    </p>
+  `,
+}
+
+export async function sendVerificationStatusEmail(params: VerificationStatusEmailParams) {
+  const { to, coachName, status } = params
+
+  try {
+    const safeName = escapeHtml(coachName)
+    const html = emailShell(`
+      <p style="font-size: 17px; font-weight: 700; margin: 0 0 16px;">Your CoachNest profile has been verified ✓</p>
+      <p style="font-size: 14px; margin: 0 0 4px;">Hi ${safeName},</p>
+      ${VERIFICATION_STATUS_BODY[status]}
+      ${ctaButton('VIEW YOUR PROFILE', 'https://coachnest.co.za/dashboard/coach/profile')}
+      <p style="font-size: 14px; margin: 16px 0 0;">Thank you for being part of CoachNest.<br />The CoachNest Team</p>
+    `)
+
+    return await getResendClient().emails.send({
+      from: NEW_FROM,
+      to,
+      replyTo: REPLY_TO,
+      subject: 'Your CoachNest profile has been verified ✓',
+      html,
+    })
+  } catch (err) {
+    console.error('Failed to send verification status email:', err)
+    return null
+  }
+}

@@ -16,6 +16,7 @@ export type CoachCardData = {
   location: string | null
   years_experience: number | null
   verification_status: string | null
+  id_document_url: string | null
   created_at: string | null
   profiles: { full_name: string | null; avatar_url: string | null } | null
   reviews: { rating: number | null }[] | null

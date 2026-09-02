@@ -49,6 +49,11 @@ export default async function AdminDashboardPage() {
     .in('status', ['completed', 'completed-unpaid'])
     .order('date', { ascending: false })
 
+  const { count: verificationCount } = await supabase
+    .from('coach_profiles')
+    .select('id', { count: 'exact', head: true })
+    .not('id_document_url', 'is', null)
+    .in('verification_status', ['pending', 'id_verified', 'qualification_verified'])
 
   return (
     <AdminDashboardClient
@@ -56,6 +61,7 @@ export default async function AdminDashboardPage() {
       // Supabase infers to-one joins as arrays; at runtime they are single objects
       reports={(reports ?? []) as unknown as AdminDashboardProps['reports']}
       sessions={(sessions ?? []) as unknown as AdminDashboardProps['sessions']}
+      initialVerificationCount={verificationCount ?? 0}
     />
   )
 }

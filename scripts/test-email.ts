@@ -29,6 +29,7 @@ async function main() {
     sendBookingAcceptedToClient,
     sendBookingCancelledEmail,
     sendPostSessionReviewEmail,
+    sendVerificationStatusEmail,
   } = await import('../lib/email/templates')
 
   const testEmail = 'Coachnestt@gmail.com'
@@ -130,6 +131,16 @@ async function main() {
     coachId: 'test-coach-id-1',
   })
   console.log('Post-session review email result:', JSON.stringify(postSessionReviewResult))
+
+  for (const status of ['id_verified', 'qualification_verified', 'verified'] as const) {
+    console.log(`Sending test verification status (${status}) email to ${testEmail}...`)
+    const verificationResult = await sendVerificationStatusEmail({
+      to: testEmail,
+      coachName: 'Test Coach',
+      status,
+    })
+    console.log(`Verification status (${status}) email result:`, JSON.stringify(verificationResult))
+  }
 }
 
 main().catch((err) => {

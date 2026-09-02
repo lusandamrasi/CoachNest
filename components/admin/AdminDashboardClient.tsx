@@ -4,11 +4,12 @@ import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import {
     Users, Flag, ChevronDown, ChevronUp, Check,
-    Clock, AlertCircle, Shield, User, Dumbbell, CalendarCheck,
+    Clock, AlertCircle, Shield, User, Dumbbell, CalendarCheck, ShieldCheck,
     type LucideIcon,
 } from 'lucide-react'
 import SessionPopup from './SessionPopUp'
 import UserPopup from './UserPopUp'
+import CoachVerificationQueue from './CoachVerificationQueue'
 
 type Profile = {
     id: string
@@ -84,7 +85,7 @@ const ROLE_CONFIG: Record<string, { label: string; className: string }> = {
 }
 
 
-type Tab = 'users' | 'reports' | 'sessions'
+type Tab = 'users' | 'reports' | 'sessions' | 'verification'
 type ReportFilter = 'all' | 'open' | 'reviewed' | 'resolved'
 type UserFilter = 'all' | 'coach' | 'client' | 'admin'
 
@@ -239,10 +240,12 @@ export default function AdminDashboardClient({
     users: initialUsers,
     reports: initialReports,
     sessions: initialSessions,
+    initialVerificationCount,
 }: {
     users: Profile[]
     reports: Report[]
     sessions: Session[]
+    initialVerificationCount: number
 }) {
     const supabase = createClient()
 
@@ -255,6 +258,7 @@ export default function AdminDashboardClient({
     const [paidIds, setPaidIds] = useState<Set<string>>(new Set())
     const [activeSession, setActiveSession] = useState<Session | null>(null)
     const [activeUser, setActiveUser] = useState<Profile | null>(null)
+    const [verificationCount, setVerificationCount] = useState(initialVerificationCount)
 
 
     const handleStatusChange = async (id: string, status: Report['status']) => {
@@ -333,6 +337,7 @@ export default function AdminDashboardClient({
                         { key: 'users', label: 'Users', icon: Users, count: initialUsers.length },
                         { key: 'reports', label: 'Reports', icon: Flag, count: openCount },
                         { key: 'sessions', label: 'Sessions', icon: CalendarCheck, count: initialSessions.length },
+                        { key: 'verification', label: 'Verification', icon: ShieldCheck, count: verificationCount },
                     ] as { key: Tab; label: string; icon: LucideIcon; count: number }[]).map(({ key, label, icon: Icon, count }) => (
                         <button
                             key={key}
@@ -537,6 +542,11 @@ export default function AdminDashboardClient({
                             })
                         )}
                     </div>
+                )}
+
+                {/* ── Verification tab ── */}
+                {tab === 'verification' && (
+                    <CoachVerificationQueue onCountChange={setVerificationCount} />
                 )}
             </div>
             <SessionPopup session={activeSession} onClose={() => setActiveSession(null)} />

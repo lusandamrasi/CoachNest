@@ -16,13 +16,7 @@ import Badge from '@/components/ui/Badge'
 import Card from '@/components/ui/Card'
 import ReviewForm from '@/components/coach/ReviewForm'
 import ReportCoachButton from '@/components/coach/ReportCoachButton'
-
-type VerificationStatus =
-  | 'unverified'
-  | 'pending'
-  | 'id_verified'
-  | 'qualification_verified'
-  | 'verified'
+import { isVerifiedCoach } from '@/lib/utils/isVerifiedCoach'
 
 function initials(name: string | null) {
   if (!name) return '?'
@@ -51,7 +45,7 @@ export default async function CoachProfilePage({ params }: { params: { id: strin
       id, sport, bio, hourly_rate, location, years_experience, intro_video_url,
       age_groups_coached, experience_levels, coaching_types, languages_spoken,
       session_packages, travel_radius_km, coaching_photos, verification_status,
-      is_suspended, is_published,
+      id_document_url, is_suspended, is_published,
       profiles!coach_profiles_id_fkey ( full_name, avatar_url )
     `)
     .eq('id', params.id)
@@ -104,8 +98,10 @@ export default async function CoachProfilePage({ params }: { params: { id: strin
   const coachingTypes: string[] = (coach.coaching_types as string[] | null) ?? []
   const languages: string[] = (coach.languages_spoken as string[] | null) ?? []
   const photos: string[] = (coach.coaching_photos as string[] | null) ?? []
-  const status = (coach.verification_status as VerificationStatus) ?? 'unverified'
-  const isVerified = status === 'verified'
+  const isVerified = isVerifiedCoach({
+    verification_status: coach.verification_status,
+    id_document_url: coach.id_document_url,
+  })
 
   const bookHref = viewerIsClient
     ? `/booking/${coach.id}`

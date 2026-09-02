@@ -15,6 +15,7 @@ export default async function FeaturedCoaches() {
       location,
       years_experience,
       verification_status,
+      id_document_url,
       created_at,
       profiles!coach_profiles_id_fkey ( full_name, avatar_url ),
       reviews ( rating )

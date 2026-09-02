@@ -1,6 +1,7 @@
 import Card from '@/components/ui/Card'
 import { MapPin, Clock3, Banknote, Mail, Phone } from 'lucide-react'
 import ProfileHeaderCard from '@/components/ui/ProfileHeaderCard'
+import { isVerifiedCoach } from '@/lib/utils/isVerifiedCoach'
 
 interface ProfileOverviewProps {
   fullName: string | null
@@ -14,6 +15,8 @@ interface ProfileOverviewProps {
   isPublished: boolean
   email: string | null
   phoneNumber: string | null
+  verificationStatus: string | null
+  idDocumentUrl: string | null
 }
 
 export default function ProfileOverview({
@@ -28,10 +31,15 @@ export default function ProfileOverview({
   isPublished,
   email,
   phoneNumber,
+  verificationStatus,
+  idDocumentUrl,
 }: ProfileOverviewProps) {
   const badges = [
     ...(sport ? [{ label: sport, variant: 'blue' as const }] : []),
     { label: isPublished ? 'Published' : 'Unpublished', variant: (isPublished ? 'green' : 'gray') as 'green' | 'gray' },
+    ...(isVerifiedCoach({ verification_status: verificationStatus, id_document_url: idDocumentUrl })
+      ? [{ label: '✓ Verified Coach', variant: 'green' as const }]
+      : []),
   ]
 
   const infoRows = [

@@ -14,6 +14,7 @@ type CoachRow = {
   travel_radius_km: number | null
   years_experience: number | null
   verification_status: string | null
+  id_document_url: string | null
   experience_levels: string[] | null
   created_at: string | null
   profiles: { full_name: string | null; avatar_url: string | null } | null
@@ -69,7 +70,7 @@ export default async function CoachesListingPage({
     .from('coach_profiles')
     .select(`
       id, sport, hourly_rate, location, location_lat, location_lng, travel_radius_km,
-      years_experience, verification_status, experience_levels, created_at,
+      years_experience, verification_status, id_document_url, experience_levels, created_at,
       profiles!coach_profiles_id_fkey ( full_name, avatar_url ),
       reviews ( rating )
     `)
